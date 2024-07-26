@@ -63,10 +63,10 @@ void hexDump(u_int8_t *array, size_t arrLen) {
   }
 }
 
-size_t hexRead(u_int * var, size_t size, size_t len, FILE * file) {
-  
-  for (int i = 0; i < size*len; i++){
+size_t hexRead(u_int *var, size_t size, size_t len, FILE *file) {
+
+  for (int i = 0; i < size * len; i++) {
 
     var += fgetc(file);
+  }
 }
-
