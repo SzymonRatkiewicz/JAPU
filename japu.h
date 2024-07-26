@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define WIDTH_DEFAULT 16
+
 typedef struct {
   size_t byteLen;
   u_int8_t signature[8];
