@@ -4,12 +4,11 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#define WIDTH 96
-#define HEIGHT 96
+void hexDump(u_int8_t *, size_t);
 
 int main() {
 
-  FILE *image = fopen("./resources/img1.jpeg", "rb");
+  FILE *image = fopen("./resources/gatto.png", "rb");
 
   if (image == NULL) {
 
@@ -29,10 +28,19 @@ int main() {
     if (i != 0 && i % 12 == 0) {
       printf("\n");
     }
-    printf("%02X, ", buffer[i]);
+    printf("[%d] %02X, ", i, buffer[i]);
   }
 
   fclose(image);
 
   return 0;
+}
+
+void hexDump(u_int8_t *array, size_t arrayLen) {
+  for (int i = 0; i < arrayLen; i++) {
+    if (i != 0 && i % 12 == 0) {
+      printf("\n");
+    }
+    printf("%02X, ", array[i]);
+  }
 }
