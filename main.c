@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -23,7 +24,6 @@ int main() {
   imagePNG source;
 
   FILE *image = fopen("./resources/img1.png", "rb");
-
   if (image == NULL) {
 
     printf("[ERROR] 404 FILE NOT FOUND\n");
@@ -44,18 +44,15 @@ int main() {
       fread(&source.filterMethod, 8, 1, image) +
       fread(&source.interlaceMethod, 8, 1, image);
 
-  //  hexDump(&source.height, sizeof(source.height));
-
   printf("\n");
-  // printf("Bytes Read: %zu\n", bytesRead);
 
   fclose(image);
 
   return 0;
 }
 
-void hexDump(u_int8_t *array, size_t arrLen) {
-  for (int i = 0; i < arrLen; i++) {
+void hexDump(u_int8_t *array, size_t arrayLen) {
+  for (int i = 0; i < arrayLen; i++) {
     if (i != 0 && i % 12 == 0) {
       printf("\n");
     }
