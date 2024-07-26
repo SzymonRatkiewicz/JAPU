@@ -7,17 +7,20 @@
 #include <string.h>
 #include <sys/types.h>
 
+#define WIDTH_DEFAULT 16
+
 typedef struct {
 
   size_t byteLen;
   u_int8_t signature[8];
-  u_int32_t width, height, bitDepth, colorType, compressionMethod, filterMethod,
+  u_int32_t width, height;
+  u_int8_t bitDepth, colorType, compressionMethod, filterMethod,
       interlaceMethod;
   u_int8_t IDAT[];
 
 } imagePNG;
 
-void hexDump(u_int8_t *, size_t);
+void hexDump(u_int8_t *, size_t, size_t);
 
 int hexStreamValue(void *, size_t, size_t, FILE *);
 
@@ -25,16 +28,14 @@ int imageInit(imagePNG *, FILE *);
 
 int main() {
 
-  FILE *image = fopen("./resources/gatto.png", "rb");
+  FILE *image = fopen("./resources/img1.png", "rb");
   if (image == NULL) {
-
     printf("[ERROR] FILE NOT FOUND %d\n", errno);
     exit(errno);
   }
 
   imagePNG source;
-  int err;
-  if ((err = imageInit(&source, image)) != 0) {
+  if ((imageInit(&source, image)) != 0) {
     printf("[ERROR] Struct init error %d\n", errno);
     exit(errno);
   }
@@ -43,25 +44,28 @@ int main() {
   fseek(image, 4, SEEK_CUR); // skip IHDR length
   fseek(image, 4, SEEK_CUR); // skip IHDR header
 
-  printf("\n%d\n", source.width);
   hexStreamValue(&source.width, 1, 4, image);
   hexStreamValue(&source.height, 1, 4, image);
 
-  printf("\n%d\n", source.width);
-  printf("\n%d\n", source.height);
-  printf("\n");
+  printf("Width: %d\n", source.width);
+  printf("Heigh: %d\n", source.height);
+
+  u_int8_t randomShit[300];
+  fread(randomShit, 1, 300, image);
+
+  hexDump(randomShit, 300, source.width);
 
   fclose(image);
 
   return 0;
 }
 
-void hexDump(u_int8_t *array, size_t arrayLen) {
+void hexDump(u_int8_t *array, size_t arrayLen, size_t width) {
   for (int i = 0; i < arrayLen; i++) {
-    if (i != 0 && i % 12 == 0) {
+    if (i != 0 && i % (width == 0 ? WIDTH_DEFAULT : width) == 0) {
       printf("\n");
     }
-    printf("%02X, ", array[i]);
+    printf("%02X ", array[i]);
   }
 }
 
