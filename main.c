@@ -1,14 +1,28 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
-#define WIDTH 96
-#define HEIGHT 96
+typedef struct {
+
+  size_t byteLen;
+  u_int8_t signature[8];
+  u_int width, height, bitDepth, colorType, compressionMethod, filterMethod,
+      interlaceMethod;
+  u_int8_t IDAT[];
+
+} imagePNG;
+
+void hexDump(u_int8_t *, size_t);
+
+size_t hexRead(u_int *, size_t, size_t, FILE *);
 
 int main() {
 
-  FILE *image = fopen("./resources/img1.jpeg", "r");
+  imagePNG source;
+
+  FILE *image = fopen("./resources/img1.png", "rb");
 
   if (image == NULL) {
 
@@ -17,32 +31,42 @@ int main() {
   }
 
   fseek(image, 0, SEEK_END);
-  size_t fileLength = ftell(image);
+  source.byteLen = ftell(image);
   fseek(image, 0, SEEK_SET);
 
-  u_int8_t buffer[fileLength];
-  size_t bytesRead = fread(buffer, 8, fileLength / 8, image);
+  size_t bytesRead =
+      fread(source.signature, 8, 8, image) + fseek(image, 8, SEEK_CUR) +
 
-  for (int i = 0; i < fileLength / 8; i++) {
+      fread(&source.width, 8, 4, image) + fread(&source.height, 8, 4, image) +
+      fread(&source.bitDepth, 8, 1, image) +
+      fread(&source.colorType, 8, 1, image) +
+      fread(&source.compressionMethod, 8, 1, image) +
+      fread(&source.filterMethod, 8, 1, image) +
+      fread(&source.interlaceMethod, 8, 1, image);
 
-    if (i != 0 && i % 12 == 0) {
-      printf("\n");
-    }
-    printf("%02X, ", buffer[i]);
-  }
+  //  hexDump(&source.height, sizeof(source.height));
 
-  size_t bytesLost = fileLength - bytesRead * 8;
-  printf("%02X, ", buffer[bytesRead - 1]);
-  // TODO: Fix this shit tommorow
-  //     /\  /|
-  //    / \_/ |
-  //   | *  * /
-  //   \__^__/
-  //
   printf("\n");
-  printf("bytes lost: %zu\n", bytesLost);
+  // printf("Bytes Read: %zu\n", bytesRead);
 
   fclose(image);
 
   return 0;
 }
+
+void hexDump(u_int8_t *array, size_t arrLen) {
+  for (int i = 0; i < arrLen; i++) {
+    if (i != 0 && i % 12 == 0) {
+      printf("\n");
+    }
+    printf("%02X, ", array[i]);
+  }
+}
+
+size_t hexRead(u_int * var, size_t size, size_t len, FILE * file) {
+  
+  for (int i = 0; i < size*len; i++){
+
+    var += fgetc(file);
+}
+
