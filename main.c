@@ -1,30 +1,11 @@
+#include "japu.h"
 #include <errno.h>
 #include <math.h>
 #include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 
 #define WIDTH_DEFAULT 16
-
-typedef struct {
-
-  size_t byteLen;
-  u_int8_t signature[8];
-  u_int32_t width, height;
-  u_int8_t bitDepth, colorType, compressionMethod, filterMethod,
-      interlaceMethod;
-  u_int8_t IDAT[];
-
-} imagePNG;
-
-void hexDump(u_int8_t *, size_t, size_t);
-
-int hexStreamValue(void *, size_t, size_t, FILE *);
-
-int imageInit(imagePNG *, FILE *);
 
 int main() {
 
@@ -92,6 +73,7 @@ int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 }
 
 int imageInit(imagePNG *image, FILE *file) {
+
   if (fseek(file, 0, SEEK_END) != 0) {
     return 1;
   }
