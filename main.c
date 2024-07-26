@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -9,7 +10,7 @@ typedef struct {
 
   size_t byteLen;
   u_int8_t signature[8];
-  u_int width, height, bitDepth, colorType, compressionMethod, filterMethod,
+  u_int8_t width, height, bitDepth, colorType, compressionMethod, filterMethod,
       interlaceMethod;
   u_int8_t IDAT[];
 
@@ -17,32 +18,27 @@ typedef struct {
 
 void hexDump(u_int8_t *, size_t);
 
-size_t hexRead(u_int *, size_t, size_t, FILE *);
+int imageInit(imagePNG *, FILE *);
 
 int main() {
-
-  imagePNG source;
 
   FILE *image = fopen("./resources/img1.png", "rb");
   if (image == NULL) {
 
-    printf("[ERROR] 404 FILE NOT FOUND\n");
-    exit(404);
+    printf("[ERROR] FILE NOT FOUND %d\n", errno);
+    exit(errno);
   }
 
-  fseek(image, 0, SEEK_END);
-  source.byteLen = ftell(image);
-  fseek(image, 0, SEEK_SET);
+  imagePNG source;
+  int err;
+  if ((err = imageInit(&source, image)) != 0) {
+    printf("[ERROR] Struct init error %d\n", errno);
+    exit(errno);
+  }
 
-  size_t bytesRead =
-      fread(source.signature, 8, 8, image) + fseek(image, 8, SEEK_CUR) +
-
-      fread(&source.width, 8, 4, image) + fread(&source.height, 8, 4, image) +
-      fread(&source.bitDepth, 8, 1, image) +
-      fread(&source.colorType, 8, 1, image) +
-      fread(&source.compressionMethod, 8, 1, image) +
-      fread(&source.filterMethod, 8, 1, image) +
-      fread(&source.interlaceMethod, 8, 1, image);
+  fseek(image, 8, SEEK_SET); // skip PNG header
+  fseek(image, 4, SEEK_CUR); // skip IHDR length
+  fseek(image, 4, SEEK_CUR); // skip IHDR header
 
   printf("\n");
 
@@ -60,10 +56,24 @@ void hexDump(u_int8_t *array, size_t arrayLen) {
   }
 }
 
-size_t hexRead(u_int *var, size_t size, size_t len, FILE *file) {
-
-  for (int i = 0; i < size * len; i++) {
-
-    var += fgetc(file);
+int imageInit(imagePNG *image, FILE *file) {
+  if (fseek(file, 0, SEEK_END) != 0) {
+    return 1;
   }
+
+  if ((image->byteLen = ftell(file)) < 0) {
+    return 1;
+  }
+
+  rewind(file);
+
+  image->width = 0;
+  image->height = 0;
+  image->bitDepth = 0;
+  image->colorType = 0;
+  image->compressionMethod = 0;
+  image->filterMethod = 0;
+  image->interlaceMethod = 0;
+
+  return 0;
 }
