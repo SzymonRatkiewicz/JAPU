@@ -4,13 +4,14 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 
 typedef struct {
 
   size_t byteLen;
   u_int8_t signature[8];
-  u_int8_t width, height, bitDepth, colorType, compressionMethod, filterMethod,
+  u_int32_t width, height, bitDepth, colorType, compressionMethod, filterMethod,
       interlaceMethod;
   u_int8_t IDAT[];
 
@@ -18,11 +19,13 @@ typedef struct {
 
 void hexDump(u_int8_t *, size_t);
 
+int hexStreamValue(void *, size_t, size_t, FILE *);
+
 int imageInit(imagePNG *, FILE *);
 
 int main() {
 
-  FILE *image = fopen("./resources/img1.png", "rb");
+  FILE *image = fopen("./resources/gatto.png", "rb");
   if (image == NULL) {
 
     printf("[ERROR] FILE NOT FOUND %d\n", errno);
@@ -40,6 +43,12 @@ int main() {
   fseek(image, 4, SEEK_CUR); // skip IHDR length
   fseek(image, 4, SEEK_CUR); // skip IHDR header
 
+  printf("\n%d\n", source.width);
+  hexStreamValue(&source.width, 1, 4, image);
+  hexStreamValue(&source.height, 1, 4, image);
+
+  printf("\n%d\n", source.width);
+  printf("\n%d\n", source.height);
   printf("\n");
 
   fclose(image);
@@ -54,6 +63,28 @@ void hexDump(u_int8_t *array, size_t arrayLen) {
     }
     printf("%02X, ", array[i]);
   }
+}
+
+int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
+
+  void *hexArr = calloc(arrLen, hexSize);
+  if (hexArr == NULL) {
+    return -1;
+  }
+
+  fread(hexArr, hexSize, arrLen, file);
+
+  u_int64_t res = 0;
+  for (int i = 0; i < hexSize * arrLen; i++) {
+    res |= *((u_int8_t *)hexArr + i) << ((hexSize * arrLen - 1 - i) * 8);
+  }
+  if (memcpy(val, &res, hexSize * arrLen) == NULL) {
+    free(hexArr);
+    return -1;
+  }
+
+  free(hexArr);
+  return hexSize * arrLen;
 }
 
 int imageInit(imagePNG *image, FILE *file) {
