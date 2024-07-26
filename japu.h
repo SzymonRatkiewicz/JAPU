@@ -5,12 +5,18 @@
 #define WIDTH_DEFAULT 16
 
 typedef struct {
-  size_t byteLen;
-  u_int8_t signature[8];
+  u_int8_t bitDepth;
+  u_int8_t colorType;
+  u_int8_t compressionMethod;
+  u_int8_t filterMethod;
+  u_int8_t interlaceMethod;
   u_int32_t width, height;
-  u_int8_t bitDepth, colorType, compressionMethod, filterMethod,
-      interlaceMethod;
-  u_int8_t IDAT[];
+} IHDRDecoded;
+
+typedef struct {
+  size_t byteLen;
+  u_int8_t signature;
+  IHDRDecoded IHDR;
 
 } imagePNG;
 
@@ -19,3 +25,5 @@ void hexDump(u_int8_t *, size_t, size_t);
 int hexStreamValue(void *, size_t, size_t, FILE *);
 
 int imageInit(imagePNG *, FILE *);
+
+int IHDRDecode(IHDRDecoded *, FILE *);

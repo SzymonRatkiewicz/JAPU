@@ -4,7 +4,7 @@
 
 int main() {
 
-  FILE *image = fopen("./resources/img1.png", "rb");
+  FILE *image = fopen("./resources/gatto.png", "rb");
   if (image == NULL) {
     printf("[ERROR] FILE NOT FOUND %d\n", errno);
     exit(errno);
@@ -20,16 +20,7 @@ int main() {
   fseek(image, 4, SEEK_CUR); // skip IHDR length
   fseek(image, 4, SEEK_CUR); // skip IHDR header
 
-  hexStreamValue(&source.width, 1, 4, image);
-  hexStreamValue(&source.height, 1, 4, image);
-
-  printf("Width: %d\n", source.width);
-  printf("Heigh: %d\n", source.height);
-
-  u_int8_t randomShit[300];
-  fread(randomShit, 1, 300, image);
-
-  hexDump(randomShit, 300, source.width);
+  IHDRDecode(&source.IHDR, image);
 
   fclose(image);
 

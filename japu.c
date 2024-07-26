@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 void hexDump(u_int8_t *array, size_t arrayLen, size_t width) {
   for (int i = 0; i < arrayLen; i++) {
     if (i != 0 && i % (width == 0 ? WIDTH_DEFAULT : width) == 0) {
@@ -46,13 +47,30 @@ int imageInit(imagePNG *image, FILE *file) {
 
   rewind(file);
 
-  image->width = 0;
-  image->height = 0;
-  image->bitDepth = 0;
-  image->colorType = 0;
-  image->compressionMethod = 0;
-  image->filterMethod = 0;
-  image->interlaceMethod = 0;
+  IHDRDecoded IHDR;
 
+  IHDR.width = 0;
+  IHDR.height = 0;
+  IHDR.bitDepth = 0;
+  IHDR.colorType = 0;
+  IHDR.compressionMethod = 0;
+  IHDR.filterMethod = 0;
+  IHDR.interlaceMethod = 0;
+
+  image->IHDR = IHDR;
+
+  return 0;
+}
+
+int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
+
+  hexStreamValue(&IHDR->width, 1, 4, file);
+  hexStreamValue(&IHDR->height, 1, 4, file);
+
+  hexStreamValue(&IHDR->bitDepth, 1, 1, file);
+  hexStreamValue(&IHDR->colorType, 1, 1, file);
+  hexStreamValue(&IHDR->compressionMethod, 1, 1, file);
+  hexStreamValue(&IHDR->filterMethod, 1, 1, file);
+  hexStreamValue(&IHDR->interlaceMethod, 1, 1, file);
   return 0;
 }
