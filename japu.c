@@ -75,3 +75,28 @@ int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
   hexStreamValue(&IHDR->interlaceMethod, 1, 1, file);
   return 0;
 }
+long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
+
+  long curPos = ftell(file);
+  fseek(file, 0, SEEK_END);
+  long fileSize = ftell(file);
+  fseek(file, curPos, SEEK_SET);
+
+  u_int32_t len = 0;
+  u_int32_t curHeader = 0;
+  long filePos = -1;
+
+  for (int i = 0; i <= fileSize; i++) {
+    hexStreamValue(&len, 1, 4, file);
+    hexStreamValue(&curHeader, 1, 4, file);
+    if (curHeader == header) {
+      fseek(file, -4, SEEK_CUR);
+      filePos = ftell(file);
+      break;
+    } else {
+      fseek(file, 4 + len, SEEK_CUR);
+    }
+  }
+
+  return filePos;
+}

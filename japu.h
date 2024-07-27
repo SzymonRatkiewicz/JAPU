@@ -4,6 +4,10 @@
 
 #define WIDTH_DEFAULT 16
 
+typedef enum {
+  IDAT = 1229209940,
+} chunkHeadersUInt32;
+
 typedef struct {
   u_int8_t bitDepth;
   u_int8_t colorType;
@@ -27,3 +31,5 @@ int hexStreamValue(void *, size_t, size_t, FILE *);
 int imageInit(imagePNG *, FILE *);
 
 int IHDRDecode(IHDRDecoded *, FILE *);
+
+long hexStreamFindHeader(chunkHeadersUInt32, FILE *);

@@ -1,6 +1,8 @@
 #include "japu.h"
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 int main() {
 
@@ -19,8 +21,11 @@ int main() {
   fseek(image, 8, SEEK_SET); // skip PNG header
   fseek(image, 4, SEEK_CUR); // skip IHDR length
   fseek(image, 4, SEEK_CUR); // skip IHDR header
-
   IHDRDecode(&source.IHDR, image);
+
+  fseek(image, 4, SEEK_CUR);
+
+  long idatPos = hexStreamFindHeader(IDAT, image);
 
   fclose(image);
 
