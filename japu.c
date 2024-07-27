@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-void hexDump(u_int8_t *array, size_t arrayLen, size_t width) {
-  for (int i = 0; i < arrayLen; i++) {
+void hexDump(u_int8_t *array, size_t arrLen, size_t width) {
+  for (int i = 0; i < arrLen; i++) {
     if (i != 0 && i % (width == 0 ? WIDTH_DEFAULT : width) == 0) {
       printf("\n");
     }
@@ -26,6 +26,7 @@ int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
   for (int i = 0; i < hexSize * arrLen; i++) {
     res |= *((u_int8_t *)hexArr + i) << ((hexSize * arrLen - 1 - i) * 8);
   }
+
   if (memcpy(val, &res, hexSize * arrLen) == NULL) {
     free(hexArr);
     return -1;
