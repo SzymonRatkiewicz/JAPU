@@ -6,6 +6,7 @@
 
 typedef enum {
   IDAT = 1229209940,
+  IEND = 1229278788,
 } chunkHeadersUInt32;
 
 typedef struct {
