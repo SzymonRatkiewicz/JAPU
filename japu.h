@@ -10,6 +10,7 @@ typedef enum {
 } chunkHeadersUInt32;
 
 typedef struct {
+  size_t IDATCount;
   u_int8_t bitDepth;
   u_int8_t colorType;
   u_int8_t compressionMethod;
@@ -34,3 +35,5 @@ int imageInit(imagePNG *, FILE *);
 int IHDRDecode(IHDRDecoded *, FILE *);
 
 long hexStreamFindHeader(chunkHeadersUInt32, FILE *);
+
+int hexStreamCountHeaders(chunkHeadersUInt32, FILE *);

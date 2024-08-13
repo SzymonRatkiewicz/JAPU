@@ -27,6 +27,7 @@ int main() {
 
   long idatPos = hexStreamFindHeader(IDAT, image);
 
+  printf("%d\n", hexStreamCountHeaders(IDAT, image));
   fclose(image);
 
   return 0;

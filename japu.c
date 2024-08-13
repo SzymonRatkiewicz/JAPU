@@ -100,3 +100,25 @@ long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
 
   return filePos;
 }
+
+int hexStreamCountHeaders(chunkHeadersUInt32 header, FILE *file) {
+
+  // THIS FUNCTION IS EXTREMELY INEFFICIENT AND SHOULD BE AVOIDED AT ALL
+  // COST WHENEVER POSSIBLE ALTHOUGH I AM WAY TOO LAZY FOR THIS RIGHT NOW
+  long oldPos = ftell(file);
+  rewind(file);
+  int headerCount = 0;
+  u_int32_t currentBytes = 0;
+
+  while (currentBytes != IEND) {
+    hexStreamValue(&currentBytes, 1, 4, file);
+    fseek(file, -3, SEEK_CUR);
+    if (currentBytes == header) {
+      headerCount++;
+    }
+  }
+
+  fseek(file, oldPos, SEEK_SET);
+
+  return headerCount;
+}
