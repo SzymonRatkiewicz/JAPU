@@ -25,9 +25,13 @@ int main() {
 
   fseek(image, 4, SEEK_CUR);
 
-  long idatPos = hexStreamFindHeader(IDAT, image);
+  long idatPosTEST = hexStreamFindHeader(IDAT, image);
+  fseek(image, -4, SEEK_CUR);
+  hexStreamSkipHeader(image);
+  idatPosTEST = hexStreamFindHeader(IDAT, image);
 
-  printf("%d\n", hexStreamCountHeaders(IDAT, image));
+  printf("%zu\n", source.IDATCount);
+
   fclose(image);
 
   return 0;

@@ -60,6 +60,8 @@ int imageInit(imagePNG *image, FILE *file) {
 
   image->IHDR = IHDR;
 
+  image->IDATCount = hexStreamCountHeaders(IDAT, file);
+
   return 0;
 }
 
@@ -75,7 +77,22 @@ int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
   hexStreamValue(&IHDR->interlaceMethod, 1, 1, file);
   return 0;
 }
+
+int hexStreamSkipHeader(FILE *file) {
+  // This function requires file pointer to be at chunks length section
+  u_int32_t len = 0;
+  u_int32_t curHeader = 0;
+  long curPos = ftell(file);
+  if (hexStreamValue(&len, 1, 4, file) < 0) {
+    return -1;
+  }
+
+  fseek(file, 8 + len, SEEK_CUR);
+  return (ftell(file) - curPos);
+}
+
 long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
+  // This function requires file pointer to be at chunks length section
 
   long curPos = ftell(file);
   fseek(file, 0, SEEK_END);
@@ -86,16 +103,16 @@ long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
   u_int32_t curHeader = 0;
   long filePos = -1;
 
-  for (int i = 0; i <= fileSize; i++) {
+  while (curHeader != IEND) {
     hexStreamValue(&len, 1, 4, file);
     hexStreamValue(&curHeader, 1, 4, file);
     if (curHeader == header) {
       fseek(file, -4, SEEK_CUR);
       filePos = ftell(file);
       break;
-    } else {
-      fseek(file, 4 + len, SEEK_CUR);
     }
+
+    fseek(file, 4 + len, SEEK_CUR);
   }
 
   return filePos;
@@ -103,18 +120,17 @@ long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
 
 int hexStreamCountHeaders(chunkHeadersUInt32 header, FILE *file) {
 
-  // THIS FUNCTION IS EXTREMELY INEFFICIENT AND SHOULD BE AVOIDED AT ALL
-  // COST WHENEVER POSSIBLE ALTHOUGH I AM WAY TOO LAZY FOR THIS RIGHT NOW
   long oldPos = ftell(file);
-  rewind(file);
   int headerCount = 0;
-  u_int32_t currentBytes = 0;
+  u_int32_t curHeader = 0;
 
-  while (currentBytes != IEND) {
-    hexStreamValue(&currentBytes, 1, 4, file);
-    fseek(file, -3, SEEK_CUR);
-    if (currentBytes == header) {
-      headerCount++;
+  fseek(file, 8, SEEK_SET);
+  while (hexStreamFindHeader(header, file) != -1) {
+    hexStreamValue(&curHeader, 1, 4, file);
+    fseek(file, -8, SEEK_CUR);
+    if (curHeader == header) {
+      ++headerCount;
+      hexStreamSkipHeader(file);
     }
   }
 
