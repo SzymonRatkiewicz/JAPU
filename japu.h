@@ -5,6 +5,7 @@
 #include "zlib.h"
 #include <assert.h>
 #include <string.h>
+#include <sys/types.h>
 #define WIDTH_DEFAULT 16
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
@@ -32,7 +33,14 @@ typedef struct {
 } IHDRDecoded;
 
 typedef struct {
+  size_t byteLen;
+  // heap allocated
+  uint8_t *IDATConcat;
+} IDATData;
+
+typedef struct {
   size_t IDATCount;
+  IDATData IDAT;
   size_t byteLen;
   u_int8_t signature;
   IHDRDecoded IHDR;
@@ -52,3 +60,5 @@ long hexStreamFindHeader(chunkHeadersUInt32, FILE *);
 int hexStreamSkipHeader(FILE *);
 
 int hexStreamCountHeaders(chunkHeadersUInt32, FILE *);
+
+int hexStreamConcatIDAT(imagePNG *, FILE *);

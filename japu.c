@@ -138,3 +138,42 @@ int hexStreamCountHeaders(chunkHeadersUInt32 header, FILE *file) {
 
   return headerCount;
 }
+
+int hexStreamConcatIDAT(imagePNG *img, FILE *file) {
+
+  long oldPos = ftell(file);
+  size_t concatLen = 0;
+  uint32_t len = 0;
+
+  fseek(file, 8, SEEK_SET); // skip PNG header
+
+  long IDATPosCache[img->IDATCount];
+  uint32_t IDATLenCache[img->IDATCount];
+
+  for (int i = 0; i < img->IDATCount; i++) {
+    IDATPosCache[i] = hexStreamFindHeader(IDAT, file);
+
+    fseek(file, -4, SEEK_CUR);
+    hexStreamValue(&len, 1, 4, file);
+    fseek(file, -4, SEEK_CUR);
+    hexStreamSkipHeader(file);
+    IDATLenCache[i] = len;
+    concatLen += len;
+  }
+
+  img->IDAT.byteLen = concatLen;
+  uint8_t *IDATs = (uint8_t *)calloc(concatLen, sizeof(uint8_t));
+  size_t IDATsPointer = 0;
+
+  for (int i = 0; i < img->IDATCount; i++) {
+    fseek(file, IDATPosCache[i] + 4, SEEK_SET);
+    fread(&IDATs[IDATsPointer], 1, IDATLenCache[i], file);
+    IDATsPointer += IDATLenCache[i];
+  }
+
+  img->IDAT.IDATConcat = IDATs;
+
+  fseek(file, oldPos, SEEK_SET);
+
+  return 0;
+}

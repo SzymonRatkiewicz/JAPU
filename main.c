@@ -6,7 +6,7 @@
 
 int main() {
 
-  FILE *image = fopen("./resources/gatto.png", "rb");
+  FILE *image = fopen("./resources/img1.png", "rb");
   if (image == NULL) {
     printf("[ERROR] FILE NOT FOUND %d\n", errno);
     exit(errno);
@@ -23,14 +23,14 @@ int main() {
   fseek(image, 4, SEEK_CUR); // skip IHDR header
   IHDRDecode(&source.IHDR, image);
 
-  fseek(image, 4, SEEK_CUR);
+  fseek(image, 4, SEEK_CUR); // skip IHDR CRC
 
-  long idatPosTEST = hexStreamFindHeader(IDAT, image);
-  fseek(image, -4, SEEK_CUR);
-  hexStreamSkipHeader(image);
-  idatPosTEST = hexStreamFindHeader(IDAT, image);
+  hexStreamConcatIDAT(&source, image);
 
-  printf("%zu\n", source.IDATCount);
+  hexDump(source.IDAT.IDATConcat, source.IDAT.byteLen, 0);
+
+  // TODO: replace this manual free with some abstract
+  free(source.IDAT.IDATConcat);
 
   fclose(image);
 
