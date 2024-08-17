@@ -24,12 +24,12 @@ typedef enum {
 } chunkHeadersUInt32;
 
 typedef struct {
-  u_int8_t bitDepth;
-  u_int8_t colorType;
-  u_int8_t compressionMethod;
-  u_int8_t filterMethod;
-  u_int8_t interlaceMethod;
-  u_int32_t width, height;
+  uint8_t bitDepth;
+  uint8_t colorType;
+  uint8_t compressionMethod;
+  uint8_t filterMethod;
+  uint8_t interlaceMethod;
+  uint32_t width, height;
 } IHDRDecoded;
 
 typedef struct {
@@ -42,12 +42,12 @@ typedef struct {
   size_t IDATCount;
   IDATData IDAT;
   size_t byteLen;
-  u_int8_t signature;
+  uint8_t signature;
   IHDRDecoded IHDR;
 
 } imagePNG;
 
-void hexDump(u_int8_t *, size_t, size_t);
+void hexDump(uint8_t *, size_t, size_t);
 
 int hexStreamValue(void *, size_t, size_t, FILE *);
 

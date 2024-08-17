@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void hexDump(u_int8_t *array, size_t arrLen, size_t width) {
+void hexDump(uint8_t *array, size_t arrLen, size_t width) {
   for (int i = 0; i < arrLen; i++) {
     if (i != 0 && i % (width == 0 ? WIDTH_DEFAULT : width) == 0) {
       printf("\n");
@@ -22,9 +22,9 @@ int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 
   fread(hexArr, hexSize, arrLen, file);
 
-  u_int64_t res = 0;
+  uint64_t res = 0;
   for (int i = 0; i < hexSize * arrLen; i++) {
-    res |= *((u_int8_t *)hexArr + i) << ((hexSize * arrLen - 1 - i) * 8);
+    res |= *((uint8_t *)hexArr + i) << ((hexSize * arrLen - 1 - i) * 8);
   }
 
   if (memcpy(val, &res, hexSize * arrLen) == NULL) {
@@ -80,8 +80,8 @@ int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
 
 int hexStreamSkipHeader(FILE *file) {
   // This function requires file pointer to be at chunks length section
-  u_int32_t len = 0;
-  u_int32_t curHeader = 0;
+  uint32_t len = 0;
+  uint32_t curHeader = 0;
   long curPos = ftell(file);
   if (hexStreamValue(&len, 1, 4, file) < 0) {
     return -1;
@@ -99,8 +99,8 @@ long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
   long fileSize = ftell(file);
   fseek(file, curPos, SEEK_SET);
 
-  u_int32_t len = 0;
-  u_int32_t curHeader = 0;
+  uint32_t len = 0;
+  uint32_t curHeader = 0;
   long filePos = -1;
 
   while (curHeader != IEND) {
@@ -122,7 +122,7 @@ int hexStreamCountHeaders(chunkHeadersUInt32 header, FILE *file) {
 
   long oldPos = ftell(file);
   int headerCount = 0;
-  u_int32_t curHeader = 0;
+  uint32_t curHeader = 0;
 
   fseek(file, 8, SEEK_SET);
   while (hexStreamFindHeader(header, file) != -1) {
