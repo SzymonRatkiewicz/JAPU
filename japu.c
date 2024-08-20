@@ -121,7 +121,6 @@ int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
   hexStreamValue(&IHDR->compressionMethod, 1, 1, file);
   hexStreamValue(&IHDR->filterMethod, 1, 1, file);
   hexStreamValue(&IHDR->interlaceMethod, 1, 1, file);
-  printIHDR(IHDR); // TODO delete later
   return 0;
 }
 
