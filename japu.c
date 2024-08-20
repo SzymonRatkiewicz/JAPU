@@ -16,6 +16,11 @@ void hexDump(uint8_t *array, size_t arrLen, size_t width) {
 
 int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 
+  if (file == NULL)
+    return -1;
+  if (val == NULL)
+    return -1;
+
   void *hexArr = calloc(arrLen, hexSize);
   if (hexArr == NULL) {
     return -1;
@@ -38,6 +43,11 @@ int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 }
 
 int imageInit(imagePNG *image, FILE *file) {
+
+  if (image == NULL)
+    return -1;
+  if (file == NULL)
+    return -1;
 
   if (fseek(file, 0, SEEK_END) != 0) {
     return -1;
@@ -109,6 +119,11 @@ void printIHDR(IHDRDecoded *IHDR) {
 
 int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
 
+  if (file == NULL)
+    return -1;
+  if (IHDR == NULL)
+    return -1;
+
   fseek(file, 8, SEEK_SET); // skip PNG header
   fseek(file, 4, SEEK_CUR); // skip IHDR length
   fseek(file, 4, SEEK_CUR); // skip IHDR header
@@ -127,6 +142,9 @@ int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
 int hexStreamSkipHeader(FILE *file) {
   // This function requires file pointer to be at chunks length section
 
+  if (file == NULL)
+    return -1;
+
   uint32_t len = 0;
   uint32_t curHeader = 0;
   long curPos = ftell(file);
@@ -140,6 +158,9 @@ int hexStreamSkipHeader(FILE *file) {
 
 long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
   // This function requires file pointer to be at chunks length section
+
+  if (file == NULL)
+    return -1;
 
   long curPos = ftell(file);
   fseek(file, 0, SEEK_END);
@@ -167,6 +188,9 @@ long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
 
 int hexStreamCountHeaders(chunkHeadersUInt32 header, FILE *file) {
 
+  if (file == NULL)
+    return -1;
+
   long oldPos = ftell(file);
   int headerCount = 0;
   uint32_t curHeader = 0;
@@ -187,6 +211,11 @@ int hexStreamCountHeaders(chunkHeadersUInt32 header, FILE *file) {
 }
 
 int hexStreamConcatIDAT(imagePNG *img, FILE *file) {
+
+  if (img == NULL)
+    return -1;
+  if (file == NULL)
+    return -1;
 
   long oldPos = ftell(file);
   size_t concatLen = 0;
