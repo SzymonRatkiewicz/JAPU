@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,9 +34,20 @@ typedef struct {
 } IHDRDecoded;
 
 typedef struct {
+  uint8_t red;
+  uint8_t green;
+  uint8_t blue;
+  uint8_t alpha;
+  uint8_t grayscale;
+
+} pixel;
+
+typedef struct {
   size_t byteLen;
   // heap allocated
   uint8_t *IDATConcat;
+  pixel *imagedata;
+
 } IDATData;
 
 typedef struct {
@@ -44,7 +56,7 @@ typedef struct {
   size_t byteLen;
   uint8_t signature;
   IHDRDecoded IHDR;
-
+  size_t scanlineLen;
 } imagePNG;
 
 void hexDump(uint8_t *, size_t, size_t);
@@ -62,3 +74,5 @@ int hexStreamSkipHeader(FILE *);
 int hexStreamCountHeaders(chunkHeadersUInt32, FILE *);
 
 int hexStreamConcatIDAT(imagePNG *, FILE *);
+
+int scanlineFilterReconstruction(uint8_t *, uint8_t *, size_t, uint8_t);

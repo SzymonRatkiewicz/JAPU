@@ -5,6 +5,7 @@
 #include <string.h>
 
 void hexDump(uint8_t *array, size_t arrLen, size_t width) {
+
   for (int i = 0; i < arrLen; i++) {
     if (i != 0 && i % (width == 0 ? WIDTH_DEFAULT : width) == 0) {
       printf("\n");
@@ -39,15 +40,14 @@ int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 int imageInit(imagePNG *image, FILE *file) {
 
   if (fseek(file, 0, SEEK_END) != 0) {
-    return 1;
+    return -1;
   }
 
   if ((image->byteLen = ftell(file)) < 0) {
-    return 1;
+    return -1;
   }
 
   rewind(file);
-
   IHDRDecoded IHDR;
 
   IHDR.width = 0;
@@ -60,12 +60,58 @@ int imageInit(imagePNG *image, FILE *file) {
 
   image->IHDR = IHDR;
 
+  if (IHDRDecode(&image->IHDR, file) != 0) {
+    printf("[ERROR] Image header decoding failed\n");
+    exit(1);
+  }
+
   image->IDATCount = hexStreamCountHeaders(IDAT, file);
+
+  size_t channelSize = 0;
+
+  switch (image->IHDR.colorType) {
+  case 0:
+    channelSize = 1; // grayscale
+    break;
+  case 2:
+    channelSize = 3; // RGB
+    break;
+  case 3:
+    channelSize = 1; // indexed colors
+    break;
+  case 4:
+    channelSize = 2; // grayscale + alpha channel
+    break;
+  case 6:
+    channelSize = 4; // RGB + alpha channel
+    break;
+  default:
+    return -1;
+  }
+
+  image->scanlineLen =
+      ((image->IHDR.bitDepth * image->IHDR.width * channelSize) / 8) + 1;
 
   return 0;
 }
 
+void printIHDR(IHDRDecoded *IHDR) {
+
+  printf("IHDR Details:\n");
+  printf("  Width: %u\n", IHDR->width);
+  printf("  Height: %u\n", IHDR->height);
+  printf("  Bit Depth: %u\n", IHDR->bitDepth);
+  printf("  Color Type: %u\n", IHDR->colorType);
+  printf("  Compression Method: %u\n", IHDR->compressionMethod);
+  printf("  Filter Method: %u\n", IHDR->filterMethod);
+  printf("  Interlace Method: %u\n", IHDR->interlaceMethod);
+}
+
 int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
+
+  fseek(file, 8, SEEK_SET); // skip PNG header
+  fseek(file, 4, SEEK_CUR); // skip IHDR length
+  fseek(file, 4, SEEK_CUR); // skip IHDR header
 
   hexStreamValue(&IHDR->width, 1, 4, file);
   hexStreamValue(&IHDR->height, 1, 4, file);
@@ -75,11 +121,13 @@ int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
   hexStreamValue(&IHDR->compressionMethod, 1, 1, file);
   hexStreamValue(&IHDR->filterMethod, 1, 1, file);
   hexStreamValue(&IHDR->interlaceMethod, 1, 1, file);
+  printIHDR(IHDR); // TODO delete later
   return 0;
 }
 
 int hexStreamSkipHeader(FILE *file) {
   // This function requires file pointer to be at chunks length section
+
   uint32_t len = 0;
   uint32_t curHeader = 0;
   long curPos = ftell(file);
@@ -177,3 +225,73 @@ int hexStreamConcatIDAT(imagePNG *img, FILE *file) {
 
   return 0;
 }
+
+#define A ((i - 1 == 0) ? 0 : preFilterScanline[i - 1])
+#define B (prevFilteredScanline[i])
+#define C ((i - 1 == 0) ? 0 : prevFilteredScanline[i - 1])
+
+static uint8_t paethFilter(uint8_t a, uint8_t b, uint8_t c) {
+
+  int p = (int)a + (int)b - (int)c;
+  int pa = abs(p - (int)a);
+  int pb = abs(p - (int)b);
+  int pc = abs(p - (int)c);
+  int Pr;
+  if (pa <= pb && pa <= pc)
+    Pr = a;
+  else if (pb <= pc)
+    Pr = b;
+  else
+    Pr = c;
+  return (uint8_t)Pr;
+}
+
+int scanlineFilterReconstruction(uint8_t *prevFilteredScanline,
+                                 uint8_t *preFilterScanline, size_t scanlineLen,
+                                 uint8_t filterMethod) {
+  //   0       None
+  //   1       Sub
+  //   2       Up
+  //   3       Average
+  //   4       Paeth
+
+  if (prevFilteredScanline == NULL && (filterMethod != 0 || filterMethod != 1))
+    return -1;
+  if (preFilterScanline == NULL)
+    return -1;
+
+  switch (filterMethod) {
+  case 0: {
+    return 0;
+    break;
+  }
+  case 1: {
+    for (int i = 1; i < scanlineLen; i++) {
+      preFilterScanline[i] = A + preFilterScanline[i];
+    }
+    break;
+  }
+  case 2: {
+    for (int i = 1; i < scanlineLen; i++) {
+      preFilterScanline[i] = B + preFilterScanline[i];
+    }
+    break;
+  }
+  case 3: {
+    for (int i = 1; i < scanlineLen; i++) {
+      preFilterScanline[i] = (A + B) / 2 + preFilterScanline[i];
+    }
+    break;
+  }
+  case 4: {
+    for (int i = 1; i < scanlineLen; i++) {
+      preFilterScanline[i] = paethFilter(A, B, C);
+    }
+    break;
+  }
+  default:
+    return -1; // invalid filter method
+  }
+
+  return 0;
+};
