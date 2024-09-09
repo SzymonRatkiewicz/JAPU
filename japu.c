@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 
 void hexDump(uint8_t *array, size_t arrLen, size_t width) {
 
@@ -13,7 +14,25 @@ void hexDump(uint8_t *array, size_t arrLen, size_t width) {
     printf("%02X ", array[i]);
   }
 }
+void hexFileDump(const char *filename, uint8_t *array, size_t arrLen,
+                 size_t width) {
 
+  FILE *out = fopen(filename, "w");
+
+  if (out == NULL) {
+    printf("[ERROR] FILE NOT FOUND %d\n", 1);
+    exit(1);
+  }
+
+  for (int i = 0; i < arrLen; i++) {
+    if (i != 0 && i % (width == 0 ? WIDTH_DEFAULT : width) == 0) {
+      fprintf(out, "\n");
+    }
+    fprintf(out, "%02X ", array[i]);
+  }
+
+  fclose(out);
+}
 int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 
   if (file == NULL)
@@ -136,6 +155,36 @@ int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
   hexStreamValue(&IHDR->compressionMethod, 1, 1, file);
   hexStreamValue(&IHDR->filterMethod, 1, 1, file);
   hexStreamValue(&IHDR->interlaceMethod, 1, 1, file);
+  return 0;
+}
+
+int IDATInflate(imagePNG *image, uint8_t *out) {
+
+  z_stream stream;
+  stream.zalloc = Z_NULL;
+  stream.zfree = Z_NULL;
+  stream.opaque = Z_NULL;
+
+  stream.avail_in = image->IDAT.byteLen;
+  stream.next_in = image->IDAT.IDATConcat;
+  stream.avail_out = image->IDAT.byteLen * 4;
+  stream.next_out = out;
+
+  if (inflateInit(&stream) != Z_OK) {
+    fprintf(stderr, "[ERROR] inflateInit failed!\n");
+    return -1;
+  }
+
+  int ret = inflate(&stream, Z_NO_FLUSH);
+  if (ret != Z_STREAM_END) {
+    fprintf(stderr, "[ERROR] inflate failed: %d\n", ret);
+    inflateEnd(&stream);
+    return -1;
+  }
+
+  if (inflateEnd(&stream) == Z_STREAM_ERROR)
+    return -1;
+
   return 0;
 }
 

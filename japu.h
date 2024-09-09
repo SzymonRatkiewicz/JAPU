@@ -61,11 +61,15 @@ typedef struct {
 
 void hexDump(uint8_t *, size_t, size_t);
 
+void hexFileDump(const char *, uint8_t *, size_t, size_t);
+
 int hexStreamValue(void *, size_t, size_t, FILE *);
 
 int imageInit(imagePNG *, FILE *);
 
 int IHDRDecode(IHDRDecoded *, FILE *);
+
+int IDATInflate(imagePNG *, uint8_t *);
 
 long hexStreamFindHeader(chunkHeadersUInt32, FILE *);
 

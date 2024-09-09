@@ -25,29 +25,7 @@ int main() {
   uint8_t *IDATInfl =
       (uint8_t *)calloc(source.scanlineLen * source.IHDR.height, 1);
 
-  z_stream stream;
-  stream.zalloc = Z_NULL;
-  stream.zfree = Z_NULL;
-  stream.opaque = Z_NULL;
-
-  stream.avail_in = source.IDAT.byteLen;
-  stream.next_in = source.IDAT.IDATConcat;
-  stream.avail_out = source.IDAT.byteLen * 4;
-  stream.next_out = IDATInfl;
-
-  if (inflateInit(&stream) != Z_OK) {
-    fprintf(stderr, "[ERROR] inflateInit failed!\n");
-    return -1;
-  }
-
-  int ret = inflate(&stream, Z_NO_FLUSH);
-  if (ret != Z_STREAM_END) {
-    fprintf(stderr, "[ERROR] inflate failed: %d\n", ret);
-    inflateEnd(&stream);
-    return -1;
-  }
-
-  inflateEnd(&stream);
+  IDATInflate(&source, IDATInfl);
 
   //  divide inflated data into scanlines
 
@@ -59,7 +37,7 @@ int main() {
     scanlineFilterReconstruction(prevFilteredScanline, currentScanline,
                                  source.scanlineLen, filterMethod);
   }
-  printf("%zu\n", source.scanlineLen);
+
   hexDump(IDATInfl, source.scanlineLen * source.IHDR.height,
           source.scanlineLen);
   //   TODO: replace this manual free with some abstract
