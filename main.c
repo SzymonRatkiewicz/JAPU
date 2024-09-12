@@ -32,6 +32,9 @@ int main() {
 
   IDATDefilter(&source, IDATRecon, IDATInfl);
 
+  pxParseIDAT(IDATRecon, source.IDAT.pxArr, source.IDAT.pxLen,
+              source.IHDR.colorType, source.bytesPerPx);
+
   // Output raw pixel data in hexes
   hexFileDump("output.txt", IDATRecon,
               (source.scanlineLen - 1) * source.IHDR.height,
@@ -40,6 +43,7 @@ int main() {
   free(IDATRecon);
   free(IDATInfl);
   free(source.IDAT.IDATConcat);
+  free(source.IDAT.pxArr);
   fclose(image);
 
   return 0;

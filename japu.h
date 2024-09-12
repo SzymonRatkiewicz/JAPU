@@ -16,9 +16,12 @@
 #else
 #define SET_BINARY_MODE(file)
 #endif
-
+// CHUNK is used by zlib
 #define CHUNK 16384
 
+// this is a collection of ascii chars that are sorted by approx. grayscale
+// value
+//  `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@
 typedef enum {
   IDAT = 1229209940,
   IEND = 1229278788,
@@ -44,9 +47,10 @@ typedef struct {
 
 typedef struct {
   size_t byteLen;
+  size_t pxLen;
   // heap allocated
   uint8_t *IDATConcat;
-  pixel *imagedata;
+  pixel *pxArr;
 
 } IDATData;
 
@@ -83,3 +87,5 @@ int hexStreamConcatIDAT(imagePNG *, FILE *);
 int scanlineFilterReconstruction(uint8_t *, uint8_t *, uint8_t *, size_t,
                                  uint8_t, size_t);
 int IDATDefilter(imagePNG *, uint8_t *, uint8_t *);
+
+int pxParseIDAT(uint8_t *, pixel *, size_t, uint8_t, size_t);

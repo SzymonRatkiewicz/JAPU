@@ -120,6 +120,10 @@ int imageInit(imagePNG *image, FILE *file) {
   image->scanlineLen =
       ((image->IHDR.bitDepth * image->IHDR.width * image->bytesPerPx) / 8) + 1;
 
+  image->IDAT.pxLen =
+      ((image->scanlineLen - 1) * image->IHDR.height) / image->bytesPerPx;
+  image->IDAT.pxArr = (pixel *)calloc(image->IDAT.pxLen, sizeof(pixel));
+
   return 0;
 }
 
@@ -406,5 +410,65 @@ int IDATDefilter(imagePNG *image, uint8_t *IDATRecon, uint8_t *IDATInfl) {
     }
   }
 
+  return 0;
+}
+
+#define RED (IDATRecon[i * bpp])
+#define GREEN (IDATRecon[(i * bpp) + 1])
+#define BLUE (IDATRecon[(i * bpp) + 2])
+
+int pxParseIDAT(uint8_t *IDATRecon, pixel *pxArr, size_t pxLen,
+                uint8_t colorType, size_t bpp) {
+
+  if (IDATRecon == NULL) {
+    printf("[ERROR] pixel parsing input cannot be NULL");
+    return -1;
+  }
+
+  if (IDATRecon == NULL) {
+    printf("[ERROR] pixel parsing output cannot be NULL");
+    return -1;
+  }
+
+  int i;
+  switch (colorType) {
+  case 0:
+    for (i = 0; i < pxLen; i++)
+      pxArr[i].grayscale = IDATRecon[i];
+    break;
+  case 2:
+    for (i = 0; i < pxLen; i++) {
+      pxArr[i].red = RED;
+      pxArr[i].green = GREEN;
+      pxArr[i].blue = BLUE;
+      pxArr[i].grayscale =
+          (uint8_t)(0.299f * RED + 0.587f * GREEN + 0.114f * BLUE);
+      printf("grayscale: %d\n", pxArr[i].grayscale);
+    }
+    break;
+  case 3:
+    // TODO: Add PLTE support
+    break;
+  case 4:
+    for (i = 0; i < pxLen; i++) {
+      pxArr[i].grayscale = IDATRecon[i * bpp];
+      pxArr[i].alpha = IDATRecon[(i * bpp) + 1];
+    }
+    break;
+  case 6:
+    for (i = 0; i < pxLen; i++) {
+      pxArr[i].red = RED;
+      pxArr[i].green = GREEN;
+      pxArr[i].blue = BLUE;
+      pxArr[i].grayscale =
+          (uint8_t)(0.299f * RED + 0.587f * GREEN + 0.114f * BLUE);
+      pxArr[i].alpha = IDATRecon[(i * bpp) + 3];
+    }
+    break;
+
+  default:
+    printf("[ERROR] invalid color type");
+    return -1;
+  }
   return 0;
 }
