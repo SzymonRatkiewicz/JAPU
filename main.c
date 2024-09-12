@@ -27,20 +27,17 @@ int main() {
 
   IDATInflate(&source, IDATInfl);
 
-  //  divide inflated data into scanlines
+  uint8_t *IDATRecon =
+      (uint8_t *)calloc((source.scanlineLen - 1) * source.IHDR.height, 1);
 
-  for (int i = 0; i < source.IHDR.height; i++) {
-    uint8_t *prevFilteredScanline =
-        (i > 0) ? &IDATInfl[(i - 1) * source.scanlineLen] : NULL;
-    uint8_t *currentScanline = &IDATInfl[i * source.scanlineLen];
-    uint8_t filterMethod = currentScanline[0];
-    scanlineFilterReconstruction(prevFilteredScanline, currentScanline,
-                                 source.scanlineLen, filterMethod);
-  }
+  IDATDefilter(&source, IDATRecon, IDATInfl);
 
-  hexDump(IDATInfl, source.scanlineLen * source.IHDR.height,
-          source.scanlineLen);
+  // Output raw pixel data in hexes
+  hexFileDump("output.txt", IDATRecon,
+              (source.scanlineLen - 1) * source.IHDR.height,
+              source.scanlineLen - 1);
   //   TODO: replace this manual free with some abstract
+  free(IDATRecon);
   free(IDATInfl);
   free(source.IDAT.IDATConcat);
   fclose(image);

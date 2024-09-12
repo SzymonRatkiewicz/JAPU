@@ -87,6 +87,7 @@ int imageInit(imagePNG *image, FILE *file) {
   IHDR.filterMethod = 0;
   IHDR.interlaceMethod = 0;
 
+  image->bytesPerPx = 0;
   image->IHDR = IHDR;
 
   if (IHDRDecode(&image->IHDR, file) != 0) {
@@ -96,30 +97,28 @@ int imageInit(imagePNG *image, FILE *file) {
 
   image->IDATCount = hexStreamCountHeaders(IDAT, file);
 
-  size_t channelSize = 0;
-
   switch (image->IHDR.colorType) {
   case 0:
-    channelSize = 1; // grayscale
+    image->bytesPerPx = 1; // grayscale
     break;
   case 2:
-    channelSize = 3; // RGB
+    image->bytesPerPx = 3; // RGB
     break;
   case 3:
-    channelSize = 1; // indexed colors
+    image->bytesPerPx = 1; // indexed colors
     break;
   case 4:
-    channelSize = 2; // grayscale + alpha channel
+    image->bytesPerPx = 2; // grayscale + alpha channel
     break;
   case 6:
-    channelSize = 4; // RGB + alpha channel
+    image->bytesPerPx = 4; // RGB + alpha channel
     break;
   default:
     return -1;
   }
 
   image->scanlineLen =
-      ((image->IHDR.bitDepth * image->IHDR.width * channelSize) / 8) + 1;
+      ((image->IHDR.bitDepth * image->IHDR.width * image->bytesPerPx) / 8) + 1;
 
   return 0;
 }
@@ -303,10 +302,6 @@ int hexStreamConcatIDAT(imagePNG *img, FILE *file) {
   return 0;
 }
 
-#define A ((i - 1 == 0) ? 0 : preFilterScanline[i - 1])
-#define B (prevFilteredScanline[i])
-#define C ((i - 1 == 0) ? 0 : prevFilteredScanline[i - 1])
-
 static uint8_t paethFilter(uint8_t a, uint8_t b, uint8_t c) {
 
   int p = (int)a + (int)b - (int)c;
@@ -323,46 +318,51 @@ static uint8_t paethFilter(uint8_t a, uint8_t b, uint8_t c) {
   return (uint8_t)Pr;
 }
 
-int scanlineFilterReconstruction(uint8_t *prevFilteredScanline,
-                                 uint8_t *preFilterScanline, size_t scanlineLen,
-                                 uint8_t filterMethod) {
+#define A ((i >= bpp) ? output[i - bpp] : 0)
+#define B ((prevScanline != NULL) ? prevScanline[i] : 0)
+#define C ((i >= bpp && prevScanline != NULL) ? prevScanline[i - bpp] : 0)
+
+int scanlineFilterReconstruction(uint8_t *output, uint8_t *prevScanline,
+                                 uint8_t *currentScanline, size_t scanlineLen,
+                                 uint8_t filterMethod, size_t bpp) {
   //   0       None
   //   1       Sub
   //   2       Up
   //   3       Average
   //   4       Paeth
 
-  if (prevFilteredScanline == NULL && (filterMethod != 0 || filterMethod != 1))
+  if (prevScanline == NULL && (filterMethod != 0 && filterMethod != 1))
     return -1;
-  if (preFilterScanline == NULL)
+  if (currentScanline == NULL)
     return -1;
 
   switch (filterMethod) {
   case 0: {
-    return 0;
+    memcpy(output, currentScanline, scanlineLen);
     break;
   }
   case 1: {
-    for (int i = 1; i < scanlineLen; i++) {
-      preFilterScanline[i] = A + preFilterScanline[i];
+    for (int i = 0; i < scanlineLen; i++) {
+      output[i] = (uint8_t)(A + currentScanline[i]);
     }
     break;
   }
   case 2: {
-    for (int i = 1; i < scanlineLen; i++) {
-      preFilterScanline[i] = B + preFilterScanline[i];
+    for (int i = 0; i < scanlineLen; i++) {
+      output[i] = (uint8_t)(B + currentScanline[i]);
     }
     break;
   }
   case 3: {
-    for (int i = 1; i < scanlineLen; i++) {
-      preFilterScanline[i] = (A + B) / 2 + preFilterScanline[i];
+
+    for (int i = 0; i < scanlineLen; i++) {
+      output[i] = (uint8_t)((A + B) / 2 + currentScanline[i]);
     }
     break;
   }
   case 4: {
-    for (int i = 1; i < scanlineLen; i++) {
-      preFilterScanline[i] = paethFilter(A, B, C);
+    for (int i = 0; i < scanlineLen; i++) {
+      output[i] = (uint8_t)(currentScanline[i] + paethFilter(A, B, C));
     }
     break;
   }
@@ -372,3 +372,39 @@ int scanlineFilterReconstruction(uint8_t *prevFilteredScanline,
 
   return 0;
 };
+
+int IDATDefilter(imagePNG *image, uint8_t *IDATRecon, uint8_t *IDATInfl) {
+
+  if (image == NULL) {
+    printf("[ERROR] image struct cannot be NULL");
+    return -1;
+  }
+  if (IDATRecon == NULL) {
+    printf("[ERROR] defiltering output cannot be NULL");
+    return -1;
+  }
+  if (IDATInfl == NULL) {
+    printf("[ERROR] defiltering input cannot be NULL");
+    return -1;
+  }
+
+  for (int i = 0; i < image->IHDR.height; i++) {
+    uint8_t *prevScanline =
+        (i > 0) ? &IDATRecon[(i - 1) * (image->scanlineLen - 1)] : NULL;
+
+    uint8_t *currentOut = &IDATRecon[i * (image->scanlineLen - 1)];
+    uint8_t *currentScanline = &IDATInfl[i * image->scanlineLen];
+
+    uint8_t filterMethod = currentScanline[0];
+
+    int ret = scanlineFilterReconstruction(
+        currentOut, prevScanline, currentScanline + 1, image->scanlineLen - 1,
+        filterMethod, image->bytesPerPx);
+    if (ret != 0) {
+      printf("[ERROR] scanline defiltering failed");
+      return -1;
+    }
+  }
+
+  return 0;
+}

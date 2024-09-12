@@ -57,6 +57,7 @@ typedef struct {
   uint8_t signature;
   IHDRDecoded IHDR;
   size_t scanlineLen;
+  size_t bytesPerPx;
 } imagePNG;
 
 void hexDump(uint8_t *, size_t, size_t);
@@ -79,4 +80,6 @@ int hexStreamCountHeaders(chunkHeadersUInt32, FILE *);
 
 int hexStreamConcatIDAT(imagePNG *, FILE *);
 
-int scanlineFilterReconstruction(uint8_t *, uint8_t *, size_t, uint8_t);
+int scanlineFilterReconstruction(uint8_t *, uint8_t *, uint8_t *, size_t,
+                                 uint8_t, size_t);
+int IDATDefilter(imagePNG *, uint8_t *, uint8_t *);
