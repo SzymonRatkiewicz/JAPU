@@ -14,6 +14,7 @@ void hexDump(uint8_t *array, size_t arrLen, size_t width) {
     printf("%02X ", array[i]);
   }
 }
+
 void hexFileDump(const char *filename, uint8_t *array, size_t arrLen,
                  size_t width) {
 
@@ -33,6 +34,63 @@ void hexFileDump(const char *filename, uint8_t *array, size_t arrLen,
 
   fclose(out);
 }
+
+void asciiFileDump(const char *filename, uint8_t *array, size_t arrLen,
+                   size_t width) {
+
+  FILE *out = fopen(filename, "w");
+
+  if (out == NULL) {
+    printf("[ERROR] FILE NOT FOUND %d\n", 1);
+    exit(1);
+  }
+
+  for (int i = 0; i < arrLen; i++) {
+    if (i != 0 && i % (width == 0 ? WIDTH_DEFAULT : width) == 0) {
+      fprintf(out, "\n");
+    }
+    fprintf(out, "%c ", array[i]);
+  }
+
+  fclose(out);
+}
+
+void htmlFileDump(const char *filename, uint8_t *array, size_t arrLen,
+                  size_t width) {
+
+  FILE *out = fopen(filename, "w");
+
+  if (out == NULL) {
+    printf("[ERROR] FILE NOT FOUND %d\n", 1);
+    exit(1);
+  }
+  fprintf(out, "<!doctype html>\n");
+  fprintf(out, "<html>\n");
+
+  fprintf(out, "<head>");
+  fprintf(out, "<style>body{background-color:#303030;color:white;font-family: "
+               "'Courier New', Courier, "
+               "monospace;white-space: pre;}pre{overflow-x: "
+               "auto;height:100%%;}</style> ");
+
+  fprintf(out, "</head>");
+
+  fprintf(out, "<body><pre>");
+
+  for (int i = 0; i < arrLen; i++) {
+    if (i != 0 && i % (width == 0 ? WIDTH_DEFAULT : width) == 0) {
+      fprintf(out, "\n");
+    }
+
+    fprintf(out, "%c ", array[i]);
+  }
+
+  fprintf(out, "</pre></body>");
+  fprintf(out, "</html>");
+
+  fclose(out);
+}
+
 int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 
   if (file == NULL)
@@ -125,6 +183,12 @@ int imageInit(imagePNG *image, FILE *file) {
   image->IDAT.pxArr = (pixel *)calloc(image->IDAT.pxLen, sizeof(pixel));
 
   return 0;
+}
+
+void imageFree(imagePNG *image) {
+
+  free(image->IDAT.IDATConcat);
+  free(image->IDAT.pxArr);
 }
 
 void printIHDR(IHDRDecoded *IHDR) {
@@ -413,6 +477,14 @@ int IDATDefilter(imagePNG *image, uint8_t *IDATRecon, uint8_t *IDATInfl) {
   return 0;
 }
 
+static void pxPrint(pixel *px) {
+  printf("R:%d\t", px->red);
+  printf("G:%d\t", px->green);
+  printf("B:%d\n", px->blue);
+  printf("Gray: %d\n", px->grayscale);
+  printf("Alpha: %d\n", px->alpha);
+}
+
 #define RED (IDATRecon[i * bpp])
 #define GREEN (IDATRecon[(i * bpp) + 1])
 #define BLUE (IDATRecon[(i * bpp) + 2])
@@ -443,7 +515,6 @@ int pxParseIDAT(uint8_t *IDATRecon, pixel *pxArr, size_t pxLen,
       pxArr[i].blue = BLUE;
       pxArr[i].grayscale =
           (uint8_t)(0.299f * RED + 0.587f * GREEN + 0.114f * BLUE);
-      printf("grayscale: %d\n", pxArr[i].grayscale);
     }
     break;
   case 3:
@@ -469,6 +540,37 @@ int pxParseIDAT(uint8_t *IDATRecon, pixel *pxArr, size_t pxLen,
   default:
     printf("[ERROR] invalid color type");
     return -1;
+  }
+  return 0;
+}
+
+int asciiImageGenerate(uint8_t *asciiArr, pixel *pxArr, size_t pxLen) {
+
+  if (asciiArr == NULL) {
+    printf("[ERROR] pixel parsing output cannot be NULL");
+    return -1;
+  }
+
+  if (pxArr == NULL) {
+    printf("[ERROR] pixel parsing input cannot be NULL");
+    return -1;
+  }
+
+  for (int i = 0; i < pxLen; i++) {
+    float grayscaleRatio = ((float)pxArr[i].grayscale / 256);
+    int savedIndex = 0;
+
+    for (int j = 1; j < ASCII_ARR_LEN; j++) {
+      float curr = grayscaleAsciiValues[0];
+      if (fabs(grayscaleRatio - curr) >
+          fabs(grayscaleRatio - grayscaleAsciiValues[j])) {
+        curr = grayscaleAsciiValues[j];
+        savedIndex = j;
+      } else {
+        break;
+      }
+    }
+    asciiArr[i] = grayscaleAscii[savedIndex];
   }
   return 0;
 }

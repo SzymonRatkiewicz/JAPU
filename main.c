@@ -32,18 +32,25 @@ int main() {
 
   IDATDefilter(&source, IDATRecon, IDATInfl);
 
+  free(IDATInfl);
+
   pxParseIDAT(IDATRecon, source.IDAT.pxArr, source.IDAT.pxLen,
               source.IHDR.colorType, source.bytesPerPx);
 
-  // Output raw pixel data in hexes
-  hexFileDump("output.txt", IDATRecon,
-              (source.scanlineLen - 1) * source.IHDR.height,
-              source.scanlineLen - 1);
-  //   TODO: replace this manual free with some abstract
   free(IDATRecon);
-  free(IDATInfl);
-  free(source.IDAT.IDATConcat);
-  free(source.IDAT.pxArr);
+
+  uint8_t *asciiArr = (uint8_t *)calloc(source.IDAT.pxLen, sizeof(uint8_t));
+
+  asciiImageGenerate(asciiArr, source.IDAT.pxArr, source.IDAT.pxLen);
+
+  // Output raw pixel data in hexes
+  asciiFileDump("output.txt", asciiArr, source.IDAT.pxLen, source.IHDR.width);
+
+  htmlFileDump("output.html", asciiArr, source.IDAT.pxLen, source.IHDR.width);
+
+  free(asciiArr);
+
+  imageFree(&source);
   fclose(image);
 
   return 0;
