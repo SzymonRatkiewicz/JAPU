@@ -5,11 +5,10 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-int main() {
-
-  FILE *image = fopen("./resources/img1.png", "rb");
+int main(int argc, char **argv) {
+  FILE *image = fopen(argv[1], "rb");
   if (image == NULL) {
-    printf("[ERROR] FILE NOT FOUND %d\n", errno);
+    printf("[ERROR] FILE %s NOT FOUND %d\n", argv[1], errno);
     exit(errno);
   }
 

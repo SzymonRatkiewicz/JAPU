@@ -234,7 +234,8 @@ int IDATInflate(imagePNG *image, uint8_t *out) {
 
   stream.avail_in = image->IDAT.byteLen;
   stream.next_in = image->IDAT.IDATConcat;
-  stream.avail_out = image->IDAT.byteLen * 4;
+  // TODO: fix this shit up I mean wtf?? \/
+  stream.avail_out = image->IDAT.byteLen * 400;
   stream.next_out = out;
 
   if (inflateInit(&stream) != Z_OK) {
