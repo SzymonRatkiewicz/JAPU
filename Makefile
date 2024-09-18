@@ -1,6 +1,6 @@
 comp-exec:
-	gcc *.c -o ./bin/main.out -lm -lz;valgrind ./bin/main.out -s;
+	gcc *.c -o ./bin/main.out -lm -lz;valgrind -s ./bin/main.out $(file);
 comp:
 	gcc *.c -o ./bin/main.out -lm -lz; 
 exec-dev:
-	valgrind ./bin/main.out -s;
+	valgrind -s ./bin/main.out $(file);
