@@ -212,6 +212,7 @@ int imageInit(imagePNG *image, FILE *file) {
     return -1;
   }
 
+  image->IDAT.isIDATConcatAllocd = 0;
   image->scanlineLen =
       ((image->IHDR.bitDepth * image->IHDR.width * image->bytesPerPx) / 8) + 1;
 
@@ -229,8 +230,22 @@ void imageFree(imagePNG *image) {
     return;
   }
 
-  free(image->IDAT.IDATConcat);
+  IDATConcatFree(image);
+
   free(image->IDAT.pxArr);
+}
+
+void IDATConcatFree(imagePNG *image) {
+
+  if (image == NULL) {
+    printf("[ERROR] IDAT concat free input image struct cannot be NULL");
+    return;
+  }
+
+  if (image->IDAT.isIDATConcatAllocd) {
+    free(image->IDAT.IDATConcat);
+    image->IDAT.isIDATConcatAllocd = 0;
+  }
 }
 
 void printIHDR(IHDRDecoded *IHDR) {
@@ -429,6 +444,14 @@ int hexStreamConcatIDAT(imagePNG *img, FILE *file) {
 
   img->IDAT.byteLen = concatLen;
   uint8_t *IDATs = (uint8_t *)calloc(concatLen, sizeof(uint8_t));
+  if (IDATs == NULL) {
+
+    printf("[ERROR] hex stream concat IDAT allocation failure");
+    return -1;
+  }
+
+  img->IDAT.isIDATConcatAllocd = 1;
+
   size_t IDATsPointer = 0;
 
   for (int i = 0; i < img->IDATCount; i++) {
@@ -661,5 +684,6 @@ int asciiImageGenerate(uint8_t *asciiArr, pixel *pxArr, size_t pxLen) {
     }
     asciiArr[i] = grayscaleAscii[savedIndex];
   }
+
   return 0;
 }
