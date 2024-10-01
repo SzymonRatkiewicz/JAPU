@@ -14,9 +14,16 @@
  * -5 => IDAT defiltering error
  * -6 => pixel parsing error
  * -7 => ascii generation error
+ * -8 => not enough arguments are given
  */
 
 int main(int argc, char **argv) {
+
+  // TODO: consider changing it to displaying some help page
+  if (argc < 1) {
+    printf("[ERROR] not enough arguments %d\n", -8);
+    return -8;
+  }
 
   if (argv[1] == NULL) {
     printf("[ERROR] file not provided %d\n", -1);
