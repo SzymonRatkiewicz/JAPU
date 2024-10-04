@@ -20,7 +20,7 @@
 int main(int argc, char **argv) {
 
   // TODO: consider changing it to displaying some help page
-  if (argc < 1) {
+  if (argc < 2) {
     printf("[ERROR] not enough arguments %d\n", -8);
     return -8;
   }
@@ -100,12 +100,27 @@ int main(int argc, char **argv) {
     free(IDATRecon);
     return -7;
   }
+  printf("\n%d\n", argc);
+  if (argc > 2 && argv[2][0] == '-') {
+    switch (argv[2][1]) {
+    case 'h': {
+      char *filename;
+      if (argc < 3) {
+        filename = "output.html";
+        printf("[WARNING] html output filename not provided, defaulting to "
+               "\"%s\" ",
+               filename);
+      }
 
-  // will exit in case of file system failure
-  asciiFileDump("output.txt", asciiArr, source.IDAT.pxLen, source.IHDR.width);
-
-  // will exit in case of file system failure
-  htmlFileDump("output.html", asciiArr, source.IDAT.pxLen, source.IHDR.width);
+      htmlFileDump(argv[3], asciiArr, source.IDAT.pxLen, source.IHDR.width);
+      break;
+    }
+    default:
+      printf("[ERROR] argument -%c not supported", argv[2][1]);
+    }
+  } else if (argc > 2) {
+    asciiFileDump(argv[2], asciiArr, source.IDAT.pxLen, source.IHDR.width);
+  }
 
   free(asciiArr);
 
