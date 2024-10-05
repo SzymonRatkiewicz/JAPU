@@ -17,20 +17,69 @@
  * -8 => not enough arguments are given
  */
 
+#define DEFAULT_HTML_FILENAME "output.html"
+
 int main(int argc, char **argv) {
 
-  // TODO: consider changing it to displaying some help page
+  char *imgFilepath;  // input path
+  char *outFilepath;  // regular output (txt) path
+  char *htmlFilepath; // optional output (html) path
+
+  // flags
+  int isImageFilepathSet = 0;
+  int isOutFileSet = 0;
+  int genHtmlFile = 0;
+
   if (argc < 2) {
     printf("[ERROR] not enough arguments %d\n", -8);
     return -8;
   }
 
-  if (argv[1] == NULL) {
+  // Handling command-line arguments
+  for (int i = 1; i < argc; ++i) {
+    if (argv[i][0] == '-') {
+      switch (argv[i][1]) {
+      case 'h': {
+        char *filename = argv[i + 1];
+        if (i + 2 < argc) {
+          filename = DEFAULT_HTML_FILENAME;
+          printf("[WARNING] html filename not specified, defaulting to %s",
+                 filename);
+        }
+
+        htmlFilepath = filename;
+        genHtmlFile = 1;
+
+        ++i;
+        continue;
+
+        break;
+      }
+
+      default:
+        printf("[ERROR] argument -%c not supported", argv[2][1]);
+      }
+    } else {
+      if (isImageFilepathSet == 0) {
+        imgFilepath = argv[i];
+        isImageFilepathSet = 1;
+        continue;
+      }
+
+      if (isOutFileSet == 0) {
+        outFilepath = argv[i];
+        isOutFileSet = 1;
+      }
+    }
+  }
+
+  // TODO: consider changing it to displaying some help page
+  if (imgFilepath == NULL || isImageFilepathSet == 0) {
     printf("[ERROR] file not provided %d\n", -1);
     return -1;
   }
 
-  FILE *image = fopen(argv[1], "rb");
+  FILE *image = fopen(imgFilepath, "rb");
   if (image == NULL) {
     printf("[ERROR] FILE %s NOT FOUND %d\n", argv[1], errno);
     exit(errno);
@@ -100,26 +149,15 @@ int main(int argc, char **argv) {
     free(IDATRecon);
     return -7;
   }
-  printf("\n%d\n", argc);
-  if (argc > 2 && argv[2][0] == '-') {
-    switch (argv[2][1]) {
-    case 'h': {
-      char *filename;
-      if (argc < 3) {
-        filename = "output.html";
-        printf("[WARNING] html output filename not provided, defaulting to "
-               "\"%s\" ",
-               filename);
-      }
 
-      htmlFileDump(argv[3], asciiArr, source.IDAT.pxLen, source.IHDR.width);
-      break;
-    }
-    default:
-      printf("[ERROR] argument -%c not supported", argv[2][1]);
-    }
-  } else if (argc > 2) {
-    asciiFileDump(argv[2], asciiArr, source.IDAT.pxLen, source.IHDR.width);
+  if (isOutFileSet == 1) {
+    printf("[DEV] creating ascii file\n");
+    asciiFileDump(outFilepath, asciiArr, source.IDAT.pxLen, source.IHDR.width);
+  }
+
+  if (genHtmlFile == 1) {
+    printf("[DEV] creating html file\n");
+    htmlFileDump(htmlFilepath, asciiArr, source.IDAT.pxLen, source.IHDR.width);
   }
 
   free(asciiArr);
