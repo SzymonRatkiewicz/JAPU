@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   for (int i = 1; i < argc; ++i) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
-      case 'h': {
+      case 'w': {
         char *filename = argv[i + 1];
         if (i + 2 < argc) {
           filename = DEFAULT_HTML_FILENAME;
