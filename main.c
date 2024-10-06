@@ -52,12 +52,10 @@ int main(int argc, char **argv) {
 
         ++i;
         continue;
-
-        break;
       }
 
       default:
-        printf("[ERROR] argument -%c not supported", argv[2][1]);
+        printf("[ERROR] argument -%c not supported", argv[i][1]);
       }
     } else {
       if (isImageFilepathSet == 0) {
