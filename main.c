@@ -55,6 +55,11 @@ int main(int argc, char **argv) {
         continue;
       }
 
+      case 'h': {
+        displayHelpPage();
+        return 0;
+      }
+
       default:
         printf("[ERROR] argument -%c not supported", argv[i][1]);
       }
