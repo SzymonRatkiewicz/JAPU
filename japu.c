@@ -687,3 +687,11 @@ int asciiImageGenerate(uint8_t *asciiArr, pixel *pxArr, size_t pxLen) {
 
   return 0;
 }
+
+void displayHelpPage() {
+  printf("\n\t Usage: japu [input_file...] [output_file...] <options> "
+         "[args...]\n");
+  printf("\n\t Options:\n");
+  printf("\t\t -w := abbreviation for \"web\", takes in path for an html file,"
+         " can be used instead of [output_file...]\n");
+}

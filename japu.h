@@ -119,3 +119,5 @@ int IDATDefilter(imagePNG *, uint8_t *, uint8_t *);
 int pxParseIDAT(uint8_t *, pixel *, size_t, uint8_t, size_t);
 
 int asciiImageGenerate(uint8_t *, pixel *, size_t);
+
+void displayHelpPage();

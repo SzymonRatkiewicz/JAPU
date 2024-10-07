@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
 
   if (argc < 2) {
     printf("[ERROR] not enough arguments %d\n", -8);
+    displayHelpPage();
     return -8;
   }
 
