@@ -42,9 +42,10 @@ int main(int argc, char **argv) {
       switch (argv[i][1]) {
       case 'w': {
         char *filename = argv[i + 1];
-        if (i + 2 < argc) {
+
+        if (i + 1 > argc) {
           filename = DEFAULT_HTML_FILENAME;
-          printf("[WARNING] html filename not specified, defaulting to %s",
+          printf("[WARNING] html filename not specified, defaulting to %s \n",
                  filename);
         }
 
