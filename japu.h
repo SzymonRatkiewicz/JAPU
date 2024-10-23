@@ -70,7 +70,7 @@ typedef struct {
   // heap allocated
   uint8_t *IDATConcat;
   pixel *pxArr;
-  // change this shit up for something like bool or smth
+  // TODO: change this shit up for something like bool or smth
   int isIDATConcatAllocd;
 } IDATData;
 
@@ -114,6 +114,7 @@ int hexStreamConcatIDAT(imagePNG *, FILE *);
 
 int scanlineFilterReconstruction(uint8_t *, uint8_t *, uint8_t *, size_t,
                                  uint8_t, size_t);
+
 int IDATDefilter(imagePNG *, uint8_t *, uint8_t *);
 
 int pxParseIDAT(uint8_t *, pixel *, size_t, uint8_t, size_t);

@@ -1,5 +1,5 @@
-#include "downscaling.h"
 #include "japu.h"
+#include "downscaling.h"
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -16,7 +16,6 @@
  * -6 => pixel parsing error
  * -7 => ascii generation error
  * -8 => not enough arguments are given
- *  -9 => pixel mapping error
  */
 
 #define DEFAULT_HTML_FILENAME "output.html"
@@ -157,21 +156,12 @@ int main(int argc, char **argv) {
     return -7;
   }
 
-  mapPixel *mp = NULL;
+  mapPixel mp*;
 
-  if (pixelMapInit(&mp, source.IHDR.width, source.IHDR.height, 48, 48) != 0) {
-    printf("[ERROR]  %d\n", -9);
-    return -9;
-  }
+  pixelMapInit(mp, source.IHDR.width, source.IHDR.height, 48,48);
 
-  PRINT_MAP_STRUCT(mp);
+  pixelMapFree(mp);
 
-  pixelMapDownscaled(mp);
-
-  if (pixelMapFree(mp) != 0) {
-    printf("[ERROR] ascii image generate error %d\n", -9);
-    return -9;
-  }
 
   if (isOutFileSet == 1) {
     printf("[DEV] creating ascii file\n");
