@@ -164,8 +164,6 @@ int main(int argc, char **argv) {
     return -9;
   }
 
-  PRINT_MAP_STRUCT(mp);
-
   pixelMapDownscaled(mp);
 
   if (pixelMapFree(mp) != 0) {
