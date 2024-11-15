@@ -89,13 +89,18 @@ int pixelMapDownscaled(mapPixel *mp) {
 
     size_t coreIndex = y * mp->preScaledHeight + x;
 
-    // Keep an eye for this POS code I am not confident enough to trust it
+    // Keep an eye on this POS code I am not confident enough to trust it
     // myself
 
-    for (int j = 0; j < 4; ++j) {
+    for (int j = 0; j < (YBound[1] - YBound[0] + 1); ++j) {
       for (int n = 0; n < 4; ++n) {
 
         calcIndex = coreIndex + ((j - 1) * mp->preScaledWidth + (n - 1));
+        CHECK_BOUND(calcIndex,
+                    YBound[0] * mp->preScaledWidth + j * mp->preScaledWidth +
+                        XBound[0],
+                    YBound[0] * mp->preScaledWidth + j * mp->preScaledWidth +
+                        XBound[1]);
 
         mp->pxMap[i][j * 4 + n] = calcIndex;
       }
