@@ -70,39 +70,17 @@ int pixelMapDownscaled(mapPixel *mp) {
     x = (int)round(scaledX / mp->scaleWidth) - 1;
     y = (int)round(scaledY / mp->scaleHeight) - 1;
 
-    CHECK_BOUND(x, 0, mp->preScaledHeight - 1)
-    CHECK_BOUND(y, 0, mp->preScaledHeight - 1)
+    int XVals[4] = {x - 1, x, x + 1, x + 2};
+    int YVals[4] = {y - 1, y, y + 1, y + 2};
 
-    int XBound[2], YBound[2];
-
-    XBound[0] = x - 1;
-    YBound[0] = y - 1;
-
-    XBound[1] = x + 2;
-    YBound[1] = y + 2;
-
-    CHECK_BOUND(XBound[0], 0, mp->preScaledWidth);
-    CHECK_BOUND(XBound[1], 0, mp->preScaledWidth);
-
-    CHECK_BOUND(YBound[0], 0, mp->preScaledHeight);
-    CHECK_BOUND(YBound[1], 0, mp->preScaledHeight);
-
-    size_t coreIndex = y * mp->preScaledHeight + x;
-
-    // Keep an eye on this POS code I am not confident enough to trust it
-    // myself
-
-    for (int j = 0; j < (YBound[1] - YBound[0] + 1); ++j) {
-      for (int n = 0; n < 4; ++n) {
-
-        calcIndex = coreIndex + ((j - 1) * mp->preScaledWidth + (n - 1));
-        CHECK_BOUND(calcIndex,
-                    YBound[0] * mp->preScaledWidth + j * mp->preScaledWidth +
-                        XBound[0],
-                    YBound[0] * mp->preScaledWidth + j * mp->preScaledWidth +
-                        XBound[1]);
-
-        mp->pxMap[i][j * 4 + n] = calcIndex;
+    // Boundary clamping
+    for (size_t n = 0; n < 4; ++n) {
+      CHECK_BOUND(XVals[n], 0, mp->preScaledWidth - 1);
+      CHECK_BOUND(YVals[n], 0, mp->preScaledHeight - 1);
+    }
+    for (size_t n = 0; n < 4; ++n) {
+      for (size_t m = 0; m < 4; ++m) {
+        mp->pxMap[i][n * 4 + m] = YVals[n] * mp->preScaledHeight + XVals[m];
       }
     }
   }
