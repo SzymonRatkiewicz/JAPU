@@ -7,7 +7,7 @@ int pixelMapInit(mapPixel **map, size_t oldWidth, size_t oldHeight,
   *map = (mapPixel *)calloc(1, sizeof(mapPixel));
 
   if (map == NULL) {
-    printf("[ERROR] pixel map allocation failure %d\n", -1);
+    fprintf(stderr, "[ERROR] pixel map allocation failure %d\n", -1);
     return -1;
   }
 
@@ -28,7 +28,7 @@ int pixelMapInit(mapPixel **map, size_t oldWidth, size_t oldHeight,
   mapObj->pxMap = (size_t(*)[16])calloc(mapObj->pxMapLen, sizeof(size_t[16]));
 
   if (mapObj->pxMap == NULL) {
-    printf("[ERROR] pixel map allocation failure %d\n", -1);
+    fprintf(stderr, "[ERROR] pixel map allocation failure %d\n", -1);
     return -1;
   }
 
@@ -38,7 +38,7 @@ int pixelMapInit(mapPixel **map, size_t oldWidth, size_t oldHeight,
 int pixelMapFree(mapPixel *mapArr) {
 
   if (mapArr == NULL) {
-    printf("[ERROR] pixel map cannot be NULL %d\n", -1);
+    fprintf(stderr, "[ERROR] pixel map cannot be NULL %d\n", -1);
     return -1;
   }
   free(mapArr->pxMap);

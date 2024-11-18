@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   int genHtmlFile = 0;
 
   if (argc < 2) {
-    printf("[ERROR] not enough arguments %d\n", -8);
+    fprintf(stderr, "[ERROR] not enough arguments %d\n", -8);
     displayHelpPage();
     return -8;
   }
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
       }
 
       default:
-        printf("[ERROR] argument -%c not supported", argv[i][1]);
+        fprintf(stderr, "[ERROR] argument -%c not supported", argv[i][1]);
       }
     } else {
       if (isImageFilepathSet == 0) {
@@ -82,27 +82,27 @@ int main(int argc, char **argv) {
 
   // TODO: consider changing it to displaying some help page
   if (imgFilepath == NULL || isImageFilepathSet == 0) {
-    printf("[ERROR] file not provided %d\n", -1);
+    fprintf(stderr, "[ERROR] file not provided %d\n", -1);
     return -1;
   }
 
   FILE *image = fopen(imgFilepath, "rb");
   if (image == NULL) {
-    printf("[ERROR] FILE %s NOT FOUND %d\n", argv[1], errno);
+    fprintf(stderr, "[ERROR] FILE %s NOT FOUND %d\n", argv[1], errno);
     exit(errno);
   }
 
   int ret;
   imagePNG source;
   if ((ret = imageInit(&source, image)) != 0) {
-    printf("[ERROR] Struct init error %d\n", ret);
+    fprintf(stderr, "[ERROR] Struct init error %d\n", ret);
     fclose(image);
     return -2;
   }
   fseek(image, 4, SEEK_CUR); // skip IHDR CRC
 
   if ((ret = hexStreamConcatIDAT(&source, image)) != 0) {
-    printf("[ERROR] IDAT concat error %d\n", ret);
+    fprintf(stderr, "[ERROR] IDAT concat error %d\n", ret);
     IDATConcatFree(&source);
     fclose(image);
     return -3;
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
       (uint8_t *)calloc(source.scanlineLen * source.IHDR.height, 1);
 
   if ((ret = IDATInflate(&source, IDATInfl)) != 0) {
-    printf("[ERROR] IDAT inflate error %d\n", ret);
+    fprintf(stderr, "[ERROR] IDAT inflate error %d\n", ret);
     fclose(image);
     IDATConcatFree(&source);
     free(IDATInfl);
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
       (uint8_t *)calloc((source.scanlineLen - 1) * source.IHDR.height, 1);
 
   if ((ret = IDATDefilter(&source, IDATRecon, IDATInfl)) != 0) {
-    printf("[ERROR] IDAT defilter error %d\n", ret);
+    fprintf(stderr, "[ERROR] IDAT defilter error %d\n", ret);
     fclose(image);
     IDATConcatFree(&source);
     free(IDATInfl);
@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
 
   if ((ret = pxParseIDAT(IDATRecon, source.IDAT.pxArr, source.IDAT.pxLen,
                          source.IHDR.colorType, source.bytesPerPx)) != 0) {
-    printf("[ERROR] pixel parse IDAT error %d\n", ret);
+    fprintf(stderr, "[ERROR] pixel parse IDAT error %d\n", ret);
     fclose(image);
     IDATConcatFree(&source);
     free(IDATRecon);
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
 
   if ((ret = asciiImageGenerate(asciiArr, source.IDAT.pxArr,
                                 source.IDAT.pxLen)) != 0) {
-    printf("[ERROR] ascii image generate error %d\n", ret);
+    fprintf(stderr, "[ERROR] ascii image generate error %d\n", ret);
     fclose(image);
     IDATConcatFree(&source);
     free(IDATRecon);
@@ -159,15 +159,21 @@ int main(int argc, char **argv) {
 
   mapPixel *mp = NULL;
 
+  // TODO: change dimensions to be provided by user rn for developement reasons
+  // I will use hardcoded vals
+
   if (pixelMapInit(&mp, source.IHDR.width, source.IHDR.height, 48, 48) != 0) {
-    printf("[ERROR]  %d\n", -9);
+    fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
     return -9;
   }
 
-  pixelMapDownscaled(mp);
+  if (pixelMapDownscaled(mp) != 0) {
+    fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
+    return -9;
+  }
 
   if (pixelMapFree(mp) != 0) {
-    printf("[ERROR] ascii image generate error %d\n", -9);
+    fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
     return -9;
   }
 

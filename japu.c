@@ -19,19 +19,19 @@ void hexFileDump(const char *filename, uint8_t *array, size_t arrLen,
                  size_t width) {
 
   if (filename == NULL) {
-    printf("[ERROR] output file cannot be NULL");
+    fprintf(stderr, "[ERROR] output file cannot be NULL");
     return;
   }
 
   if (array == NULL) {
-    printf("[ERROR] hexDump input cannot be NULL");
+    fprintf(stderr, "[ERROR] hexDump input cannot be NULL");
     return;
   }
 
   FILE *out = fopen(filename, "w");
 
   if (out == NULL) {
-    printf("[ERROR] FILE NOT FOUND %d\n", 1);
+    fprintf(stderr, "[ERROR] FILE NOT FOUND %d\n", 1);
     exit(1);
   }
 
@@ -49,19 +49,19 @@ void asciiFileDump(const char *filename, uint8_t *array, size_t arrLen,
                    size_t width) {
 
   if (filename == NULL) {
-    printf("[ERROR] output file cannot be NULL");
+    fprintf(stderr, "[ERROR] output file cannot be NULL");
     return;
   }
 
   if (array == NULL) {
-    printf("[ERROR] asciiDump input cannot be NULL");
+    fprintf(stderr, "[ERROR] asciiDump input cannot be NULL");
     return;
   }
 
   FILE *out = fopen(filename, "w");
 
   if (out == NULL) {
-    printf("[ERROR] FILE NOT FOUND %d\n", 1);
+    fprintf(stderr, "[ERROR] FILE NOT FOUND %d\n", 1);
     exit(1);
   }
 
@@ -79,19 +79,19 @@ void htmlFileDump(const char *filename, uint8_t *array, size_t arrLen,
                   size_t width) {
 
   if (filename == NULL) {
-    printf("[ERROR] output file cannot be NULL");
+    fprintf(stderr, "[ERROR] output file cannot be NULL");
     return;
   }
 
   if (array == NULL) {
-    printf("[ERROR] htmlDump input cannot be NULL");
+    fprintf(stderr, "[ERROR] htmlDump input cannot be NULL");
     return;
   }
 
   FILE *out = fopen(filename, "w");
 
   if (out == NULL) {
-    printf("[ERROR] FILE NOT FOUND %d\n", 1);
+    fprintf(stderr, "[ERROR] FILE NOT FOUND %d\n", 1);
     exit(1);
   }
   fprintf(out, "<!doctype html>\n");
@@ -124,11 +124,11 @@ void htmlFileDump(const char *filename, uint8_t *array, size_t arrLen,
 int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 
   if (file == NULL) {
-    printf("[ERROR] hexStream input file cannot be NULL");
+    fprintf(stderr, "[ERROR] hexStream input file cannot be NULL");
     return -1;
   }
   if (val == NULL) {
-    printf("[ERROR] hexStream output variable cannot be NULL");
+    fprintf(stderr, "[ERROR] hexStream output variable cannot be NULL");
     return -1;
   }
   void *hexArr = calloc(arrLen, hexSize);
@@ -155,11 +155,11 @@ int hexStreamValue(void *val, size_t hexSize, size_t arrLen, FILE *file) {
 int imageInit(imagePNG *image, FILE *file) {
 
   if (image == NULL) {
-    printf("[ERROR] image init output struct cannot be NULL");
+    fprintf(stderr, "[ERROR] image init output struct cannot be NULL");
     return -1;
   }
   if (file == NULL) {
-    printf("[ERROR] image init input file cannot be NULL");
+    fprintf(stderr, "[ERROR] image init input file cannot be NULL");
     return -1;
   }
 
@@ -186,7 +186,7 @@ int imageInit(imagePNG *image, FILE *file) {
   image->IHDR = IHDR;
 
   if (IHDRDecode(&image->IHDR, file) != 0) {
-    printf("[ERROR] Image header decoding failed\n");
+    fprintf(stderr, "[ERROR] Image header decoding failed\n");
     exit(1);
   }
 
@@ -226,7 +226,7 @@ int imageInit(imagePNG *image, FILE *file) {
 void imageFree(imagePNG *image) {
 
   if (image == NULL) {
-    printf("[ERROR] image free input image struct cannot be NULL");
+    fprintf(stderr, "[ERROR] image free input image struct cannot be NULL");
     return;
   }
 
@@ -238,7 +238,8 @@ void imageFree(imagePNG *image) {
 void IDATConcatFree(imagePNG *image) {
 
   if (image == NULL) {
-    printf("[ERROR] IDAT concat free input image struct cannot be NULL");
+    fprintf(stderr,
+            "[ERROR] IDAT concat free input image struct cannot be NULL");
     return;
   }
 
@@ -251,7 +252,7 @@ void IDATConcatFree(imagePNG *image) {
 void printIHDR(IHDRDecoded *IHDR) {
 
   if (IHDR == NULL) {
-    printf("[ERROR] print IHDR input IHDR struct cannot be NULL");
+    fprintf(stderr, "[ERROR] print IHDR input IHDR struct cannot be NULL");
     return;
   }
 
@@ -268,12 +269,12 @@ void printIHDR(IHDRDecoded *IHDR) {
 int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
 
   if (file == NULL) {
-    printf("[ERROR] IHDR decode input file cannot be NULL");
+    fprintf(stderr, "[ERROR] IHDR decode input file cannot be NULL");
     return -1;
   }
 
   if (IHDR == NULL) {
-    printf("[ERROR] IHDR decode output IHDR struct cannot be NULL");
+    fprintf(stderr, "[ERROR] IHDR decode output IHDR struct cannot be NULL");
     return -1;
   }
 
@@ -295,12 +296,12 @@ int IHDRDecode(IHDRDecoded *IHDR, FILE *file) {
 int IDATInflate(imagePNG *image, uint8_t *out) {
 
   if (image == NULL) {
-    printf("[ERROR] IDAT inflate input image struct cannot be NULL");
+    fprintf(stderr, "[ERROR] IDAT inflate input image struct cannot be NULL");
     return -1;
   }
 
   if (out == NULL) {
-    printf("[ERROR] IDAT inflate output cannot be NULL");
+    fprintf(stderr, "[ERROR] IDAT inflate output cannot be NULL");
     return -1;
   }
 
@@ -337,7 +338,7 @@ int hexStreamSkipHeader(FILE *file) {
   // This function requires file pointer to be at chunks length section
 
   if (file == NULL) {
-    printf("[ERROR] hex stream skip header input file cannot be NULL");
+    fprintf(stderr, "[ERROR] hex stream skip header input file cannot be NULL");
     return -1;
   }
 
@@ -356,7 +357,7 @@ long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
   // This function requires file pointer to be at chunks length section
 
   if (file == NULL) {
-    printf("[ERROR] hex stream find header input file cannot be NULL");
+    fprintf(stderr, "[ERROR] hex stream find header input file cannot be NULL");
     return -1;
   }
 
@@ -387,7 +388,8 @@ long hexStreamFindHeader(chunkHeadersUInt32 header, FILE *file) {
 int hexStreamCountHeaders(chunkHeadersUInt32 header, FILE *file) {
 
   if (file == NULL) {
-    printf("[ERROR] hex stream count headers input file cannot be NULL");
+    fprintf(stderr,
+            "[ERROR] hex stream count headers input file cannot be NULL");
     return -1;
   }
 
@@ -413,12 +415,13 @@ int hexStreamCountHeaders(chunkHeadersUInt32 header, FILE *file) {
 int hexStreamConcatIDAT(imagePNG *img, FILE *file) {
 
   if (img == NULL) {
-    printf("[ERROR] hex stream concat IDAT input image struct cannot be NULL");
+    fprintf(stderr,
+            "[ERROR] hex stream concat IDAT input image struct cannot be NULL");
     return -1;
   }
 
   if (file == NULL) {
-    printf("[ERROR] hex stream concat IDAT input file cannot be NULL");
+    fprintf(stderr, "[ERROR] hex stream concat IDAT input file cannot be NULL");
     return -1;
   }
 
@@ -446,7 +449,7 @@ int hexStreamConcatIDAT(imagePNG *img, FILE *file) {
   uint8_t *IDATs = (uint8_t *)calloc(concatLen, sizeof(uint8_t));
   if (IDATs == NULL) {
 
-    printf("[ERROR] hex stream concat IDAT allocation failure");
+    fprintf(stderr, "[ERROR] hex stream concat IDAT allocation failure");
     return -1;
   }
 
@@ -497,8 +500,8 @@ int scanlineFilterReconstruction(uint8_t *output, uint8_t *prevScanline,
   //   4       Paeth
 
   if (prevScanline == NULL && (filterMethod != 0 && filterMethod != 1)) {
-    printf("[ERROR] scanline filter reconstruction prevScanline "
-           "cannot be NULL when filters are not 0 or 1");
+    fprintf(stderr, "[ERROR] scanline filter reconstruction prevScanline "
+                    "cannot be NULL when filters are not 0 or 1");
     return -1;
   }
 
@@ -548,17 +551,17 @@ int scanlineFilterReconstruction(uint8_t *output, uint8_t *prevScanline,
 int IDATDefilter(imagePNG *image, uint8_t *IDATRecon, uint8_t *IDATInfl) {
 
   if (image == NULL) {
-    printf("[ERROR] image struct cannot be NULL");
+    fprintf(stderr, "[ERROR] image struct cannot be NULL");
     return -1;
   }
 
   if (IDATRecon == NULL) {
-    printf("[ERROR] defiltering output cannot be NULL");
+    fprintf(stderr, "[ERROR] defiltering output cannot be NULL");
     return -1;
   }
 
   if (IDATInfl == NULL) {
-    printf("[ERROR] defiltering input cannot be NULL");
+    fprintf(stderr, "[ERROR] defiltering input cannot be NULL");
     return -1;
   }
 
@@ -575,7 +578,7 @@ int IDATDefilter(imagePNG *image, uint8_t *IDATRecon, uint8_t *IDATInfl) {
         currentOut, prevScanline, currentScanline + 1, image->scanlineLen - 1,
         filterMethod, image->bytesPerPx);
     if (ret != 0) {
-      printf("[ERROR] scanline defiltering failed");
+      fprintf(stderr, "[ERROR] scanline defiltering failed");
       return -1;
     }
   }
@@ -586,7 +589,7 @@ int IDATDefilter(imagePNG *image, uint8_t *IDATRecon, uint8_t *IDATInfl) {
 static void pxPrint(pixel *px) {
 
   if (px == NULL) {
-    printf("[ERROR] px print px cannot be NULL");
+    fprintf(stderr, "[ERROR] px print px cannot be NULL");
     return;
   }
 
@@ -605,12 +608,12 @@ int pxParseIDAT(uint8_t *IDATRecon, pixel *pxArr, size_t pxLen,
                 uint8_t colorType, size_t bpp) {
 
   if (IDATRecon == NULL) {
-    printf("[ERROR] pixel parsing input cannot be NULL");
+    fprintf(stderr, "[ERROR] pixel parsing input cannot be NULL");
     return -1;
   }
 
   if (pxArr == NULL) {
-    printf("[ERROR] pixel parsing output cannot be NULL");
+    fprintf(stderr, "[ERROR] pixel parsing output cannot be NULL");
     return -1;
   }
 
@@ -650,7 +653,7 @@ int pxParseIDAT(uint8_t *IDATRecon, pixel *pxArr, size_t pxLen,
     break;
 
   default:
-    printf("[ERROR] invalid color type");
+    fprintf(stderr, "[ERROR] invalid color type");
     return -1;
   }
   return 0;
@@ -659,12 +662,12 @@ int pxParseIDAT(uint8_t *IDATRecon, pixel *pxArr, size_t pxLen,
 int asciiImageGenerate(uint8_t *asciiArr, pixel *pxArr, size_t pxLen) {
 
   if (asciiArr == NULL) {
-    printf("[ERROR] pixel parsing output cannot be NULL");
+    fprintf(stderr, "[ERROR] pixel parsing output cannot be NULL");
     return -1;
   }
 
   if (pxArr == NULL) {
-    printf("[ERROR] pixel parsing input cannot be NULL");
+    fprintf(stderr, "[ERROR] pixel parsing input cannot be NULL");
     return -1;
   }
 
