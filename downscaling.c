@@ -1,4 +1,5 @@
 #include "downscaling.h"
+#include <stdio.h>
 
 int pixelMapInit(mapPixel **map, size_t oldWidth, size_t oldHeight,
                  size_t newWidth, size_t newHeight) {
@@ -56,19 +57,19 @@ int pixelMapFree(mapPixel *mapArr) {
 
 int pixelMapDownscaled(mapPixel *mp) {
 
+  if (mp == NULL) {
+    fprintf(stderr, "[ERROR] pixel map cannot be NULL %d\n", -1);
+    return -1;
+  }
+
   int x, y;
-  int scaledX, scaledY;
   long calcIndex;
 
   for (int i = 0; i < mp->pxMapLen; ++i) {
 
-    // x and y in the smaller image
-    scaledX = i % mp->scaledWidth;
-    scaledY = i / mp->scaledHeight;
-
     // x and y in the bigger, scaled up relatively image
-    x = (int)round(scaledX / mp->scaleWidth) - 1;
-    y = (int)round(scaledY / mp->scaleHeight) - 1;
+    x = (int)round((i % mp->scaledWidth) / mp->scaleWidth) - 1;
+    y = (int)round(((float)i / mp->scaledHeight) / mp->scaleHeight) - 1;
 
     int XVals[4] = {x - 1, x, x + 1, x + 2};
     int YVals[4] = {y - 1, y, y + 1, y + 2};
