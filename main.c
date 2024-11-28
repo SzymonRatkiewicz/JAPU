@@ -1,5 +1,4 @@
 #include "downscaling.h"
-#include "japu.h"
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -26,11 +25,14 @@ int main(int argc, char **argv) {
   char *imgFilepath;  // input path
   char *outFilepath;  // regular output (txt) path
   char *htmlFilepath; // optional output (html) path
+  size_t scaledX = 0;
+  size_t scaledY = 0;
 
   // flags
   int isImageFilepathSet = 0;
   int isOutFileSet = 0;
   int genHtmlFile = 0;
+  int isDownscalingSet = 0;
 
   if (argc < 2) {
     fprintf(stderr, "[ERROR] not enough arguments %d\n", -8);
@@ -61,6 +63,19 @@ int main(int argc, char **argv) {
       case 'h': {
         displayHelpPage();
         return 0;
+      }
+
+      case 'd': {
+        if (i + 2 > argc) {
+          fprintf(stderr, "[ERROR] provide correct x and y values \n");
+        }
+
+        scaledX = atoi(argv[i + 1]);
+        scaledY = atoi(argv[i + 2]);
+
+        isDownscalingSet = 1;
+        i += 2;
+        continue;
       }
 
       default:
@@ -146,45 +161,91 @@ int main(int argc, char **argv) {
 
   free(IDATRecon);
 
-  uint8_t *asciiArr = (uint8_t *)calloc(source.IDAT.pxLen, sizeof(uint8_t));
+  uint8_t *asciiArr = NULL;
 
-  if ((ret = asciiImageGenerate(asciiArr, source.IDAT.pxArr,
-                                source.IDAT.pxLen)) != 0) {
-    fprintf(stderr, "[ERROR] ascii image generate error %d\n", ret);
-    fclose(image);
-    IDATConcatFree(&source);
-    free(IDATRecon);
-    return -7;
-  }
+  size_t asciiArrLen = 0;
+  size_t asciiWidth = 0;
 
   mapPixel *mp = NULL;
 
-  // TODO: change dimensions to be provided by user rn for developement reasons
-  // I will use hardcoded vals
+  if (isDownscalingSet) {
 
-  if (pixelMapInit(&mp, source.IHDR.width, source.IHDR.height, 48, 48) != 0) {
-    fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
-    return -9;
+    if (pixelMapInit(&mp, source.IHDR.width, source.IHDR.height, scaledX,
+                     scaledY) != 0) {
+      fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
+      return -9;
+    }
+
+    if (pixelMapDownscaled(mp) != 0) {
+      fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
+      return -9;
+    }
+
+    pixel *pxArrDownscaled = (pixel *)calloc(mp->pxMapLen, sizeof(pixel));
+
+    if (pxArrDownscaled == NULL) {
+      fprintf(stderr, "[ERROR] pixel mapping allocation error %d\n", -9);
+      return -9;
+    }
+
+    if (pixelMapInterpolate(pxArrDownscaled, source.IDAT.pxArr, mp) != 0) {
+      fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
+      return -9;
+    }
+
+    uint8_t *asciiArrDownscaled =
+        (uint8_t *)calloc(mp->pxMapLen, sizeof(uint8_t));
+
+    if (asciiArrDownscaled == NULL) {
+      fprintf(stderr, "[ERROR] pixel mapping allocation error %d\n", -9);
+      return -9;
+    }
+
+    if ((ret = asciiImageGenerate(asciiArrDownscaled, pxArrDownscaled,
+                                  mp->pxMapLen)) != 0) {
+      fprintf(stderr, "[ERROR] ascii image generate error %d\n", ret);
+      fclose(image);
+    }
+
+    free(pxArrDownscaled);
+    asciiArr = asciiArrDownscaled;
+    asciiArrLen = mp->pxMapLen;
+    asciiWidth = scaledX;
+
+    if (pixelMapFree(mp) != 0) {
+      fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
+      return -9;
+    }
+
+  } else {
+
+    asciiArr = (uint8_t *)calloc(source.IDAT.pxLen, sizeof(uint8_t));
+    if (asciiArr == NULL) {
+      fprintf(stderr, "[ERROR] ascii image generate allocation error %d\n", -9);
+      return -9;
+    }
+
+    if ((ret = asciiImageGenerate(asciiArr, source.IDAT.pxArr,
+                                  source.IDAT.pxLen)) != 0) {
+      fprintf(stderr, "[ERROR] ascii image generate error %d\n", ret);
+      fclose(image);
+      IDATConcatFree(&source);
+      free(IDATRecon);
+      return -7;
+    }
+
+    asciiArrLen = source.IDAT.pxLen;
+    asciiWidth = source.IHDR.width;
   }
-
-  if (pixelMapDownscaled(mp) != 0) {
-    fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
-    return -9;
-  }
-
-  if (pixelMapFree(mp) != 0) {
-    fprintf(stderr, "[ERROR] pixel mapping error %d\n", -9);
-    return -9;
-  }
-
+  // -----------------
   if (isOutFileSet == 1) {
     printf("[DEV] creating ascii file\n");
-    asciiFileDump(outFilepath, asciiArr, source.IDAT.pxLen, source.IHDR.width);
+    asciiFileDump(outFilepath, asciiArr, asciiArrLen, asciiWidth);
   }
 
   if (genHtmlFile == 1) {
     printf("[DEV] creating html file\n");
-    htmlFileDump(htmlFilepath, asciiArr, source.IDAT.pxLen, source.IHDR.width);
+    htmlFileDump(htmlFilepath, asciiArr, asciiArrLen, asciiWidth);
   }
 
   free(asciiArr);

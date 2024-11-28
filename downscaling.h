@@ -1,3 +1,4 @@
+#include "japu.h"
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -39,3 +40,5 @@ int pixelMapInit(mapPixel **, size_t, size_t, size_t, size_t);
 int pixelMapFree(mapPixel *);
 
 int pixelMapDownscaled(mapPixel *);
+
+int pixelMapInterpolate(pixel *, pixel *, mapPixel *);

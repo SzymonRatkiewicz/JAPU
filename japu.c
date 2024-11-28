@@ -1,9 +1,4 @@
 #include "japu.h"
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <zlib.h>
 
 void hexDump(uint8_t *array, size_t arrLen, size_t width) {
 
@@ -446,9 +441,10 @@ int hexStreamConcatIDAT(imagePNG *img, FILE *file) {
   }
 
   img->IDAT.byteLen = concatLen;
-  uint8_t *IDATs = (uint8_t *)calloc(concatLen, sizeof(uint8_t));
-  if (IDATs == NULL) {
 
+  uint8_t *IDATs = (uint8_t *)calloc(concatLen, sizeof(uint8_t));
+
+  if (IDATs == NULL) {
     fprintf(stderr, "[ERROR] hex stream concat IDAT allocation failure");
     return -1;
   }

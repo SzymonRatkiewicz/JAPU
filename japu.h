@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <string.h>
 #include <sys/types.h>
+#include <zlib.h>
 #define WIDTH_DEFAULT 16
 
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(__CYGWIN__)
