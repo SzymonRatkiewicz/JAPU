@@ -672,7 +672,8 @@ int asciiImageGenerate(uint8_t *asciiArr, pixel *pxArr, size_t pxLen) {
   }
 
   for (int i = 0; i < pxLen; i++) {
-    float grayscaleRatio = ((float)pxArr[i].grayscale / 256 * 0.4);
+    float grayscaleRatio =
+        (GRAYSCALE_TRANSFORM((float)pxArr[i].grayscale / 256) * 0.4);
     int savedIndex = 0;
 
     for (int j = 1; j < ASCII_ARR_LEN; j++) {
