@@ -659,6 +659,25 @@ int pxParseIDAT(uint8_t *IDATRecon, pixel *pxArr, size_t pxLen,
   return 0;
 }
 
+void createGrayscaleMap256(int *arr) {
+  for (int i = 0; i < 256; ++i) {
+    arr[i] = 0;
+  }
+
+  for (int i = 0; i < 256; ++i) {
+    for (int j = 0; j < ASCII_ARR_LEN - 1; ++j) {
+      if (abs(grayscaleAsciiValues[arr[i]] - i) <
+          abs(grayscaleAsciiValues[j] - i))
+        break;
+      if (abs(grayscaleAsciiValues[j] - i) >
+          abs(grayscaleAsciiValues[j + 1] - i))
+        arr[i] = j + 1;
+      else
+        arr[i] = j;
+    }
+  }
+}
+
 int asciiImageGenerate(uint8_t *asciiArr, pixel *pxArr, size_t pxLen) {
 
   if (asciiArr == NULL) {
@@ -671,22 +690,12 @@ int asciiImageGenerate(uint8_t *asciiArr, pixel *pxArr, size_t pxLen) {
     return -1;
   }
 
-  for (int i = 0; i < pxLen; i++) {
-    float grayscaleRatio =
-        (GRAYSCALE_TRANSFORM((float)pxArr[i].grayscale / 256) * 0.4);
-    int savedIndex = 0;
+  int mappedVals[256];
+  createGrayscaleMap256(mappedVals);
 
-    for (int j = 1; j < ASCII_ARR_LEN; j++) {
-      float curr = grayscaleAsciiValues[0];
-      if (fabs(grayscaleRatio - curr) >
-          fabs(grayscaleRatio - grayscaleAsciiValues[j])) {
-        curr = grayscaleAsciiValues[j];
-        savedIndex = j;
-      } else {
-        break;
-      }
-    }
-    asciiArr[i] = grayscaleAscii[savedIndex];
+  for (int i = 0; i < pxLen; i++) {
+    asciiArr[i] =
+        grayscaleAscii[mappedVals[GRAYSCALE_TRANSFORM(pxArr[i].grayscale)]];
   }
 
   return 0;

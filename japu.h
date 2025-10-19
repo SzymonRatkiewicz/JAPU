@@ -23,26 +23,16 @@
 // value
 //  `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@
 
-#define ASCII_ARR_LEN 42
+#define ASCII_ARR_LEN 41
 
-#define GRAYSCALE_TRANSFORM(x)                                                 \
-  ((0.005628 + (-0.820202) * (x) + 362.379369 * (x) * (x) +                    \
-    (-1008.271666) * (x) * (x) * (x) + 893.523573 * (x) * (x) * (x) * (x) +    \
-    (-209.142326) * (x) * (x) * (x) * (x) * (x) +                              \
-    (-37.621346) * (x) * (x) * (x) * (x) * (x) * (x)) /                        \
-   (1.0 + 321.611872 * (x) + (-730.539905) * (x) * (x) +                       \
-    55.800239 * (x) * (x) * (x) + 1042.410369 * (x) * (x) * (x) * (x) +        \
-    (-945.810982) * (x) * (x) * (x) * (x) * (x) +                              \
-    255.596133 * (x) * (x) * (x) * (x) * (x) * (x)))
-static const char grayscaleAscii[ASCII_ARR_LEN] =
+#define GRAYSCALE_TRANSFORM(x) x
+static const char grayscaleAscii[ASCII_ARR_LEN + 1] =
     " `-':_,^=;>+!*/zTv({nyaSw9dpOKX8$B0MWQ%&@";
 
-static const float grayscaleAsciiValues[ASCII_ARR_LEN] = {
-    0,      0.0751, 0.0848, 0.1227, 0.1403, 0.1559, 0.185,  0.2183, 0.2417,
-    0.2571, 0.2852, 0.2919, 0.3099, 0.3294, 0.3384, 0.3609, 0.3747, 0.3838,
-    0.3993, 0.42,   0.4503, 0.4703, 0.4833, 0.4992, 0.5509, 0.565,  0.5776,
-    0.587,  0.5972, 0.6099, 0.6465, 0.6631, 0.6816, 0.6925, 0.7086, 0.7235,
-    0.7332, 0.7602, 0.7834, 0.8037, 0.9999};
+static const int grayscaleAsciiValues[ASCII_ARR_LEN] = {
+    0,   19,  22,  31,  36,  40,  47,  56,  62,  66,  73,  74,  79,  84,
+    86,  92,  96,  98,  102, 107, 115, 120, 123, 127, 140, 144, 147, 150,
+    152, 156, 165, 169, 174, 177, 181, 184, 187, 194, 200, 205, 255};
 
 typedef enum {
   IDAT = 1229209940,
@@ -121,6 +111,8 @@ int scanlineFilterReconstruction(uint8_t *, uint8_t *, uint8_t *, size_t,
 int IDATDefilter(imagePNG *, uint8_t *, uint8_t *);
 
 int pxParseIDAT(uint8_t *, pixel *, size_t, uint8_t, size_t);
+
+void createGrayscaleMap256(int *);
 
 int asciiImageGenerate(uint8_t *, pixel *, size_t);
 
